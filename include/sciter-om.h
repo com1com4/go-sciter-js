@@ -3,9 +3,10 @@
 #ifndef __SCITER_OM_H__
 #define __SCITER_OM_H__
 
+#include "sciter-x-primitives.h"
+#include "sciter-x-value.h"
 
 struct som_passport_t;
-struct som_asset_class_t;
 
 typedef UINT64 som_atom_t;
 
@@ -20,10 +21,13 @@ typedef struct som_asset_class_t {
   struct som_passport_t* (*asset_get_passport)(som_asset_t* thing);
 } som_asset_class_t;
 
-
-inline som_asset_class_t* som_asset_get_class(const som_asset_t* pass)
+inline struct som_asset_class_t* som_asset_get_class(const struct som_asset_t* pass)
 {
-  return pass ? pass->isa : 0;
+#ifdef __cplusplus
+  return pass ? pass->isa : nullptr;
+#else
+  return pass ? pass->isa : NULL;
+#endif
 }
 
 som_atom_t SCAPI SciterAtomValue(const char* name);
@@ -49,7 +53,7 @@ namespace sciter {
     template <class R> class hasset;
 
     // implementation of som_asset_t ISA
-    // note: does not define asset_add_ref()/asset_release() as they shall be defined in specializations
+    // note: does not define asset_add_ref()/asset_release() as they shall be defined in specializations 
     template <class A>
     class iasset : public som_asset_t
     {
@@ -65,8 +69,8 @@ namespace sciter {
         if (out) { this->asset_add_ref(); *out = this; }
         return true;
       }
-      virtual som_passport_t* asset_get_passport() const {
-        return nullptr;
+      virtual som_passport_t* asset_get_passport() const { 
+        return nullptr; 
       }
 
       static som_asset_class_t* get_asset_class() {
@@ -87,7 +91,7 @@ namespace sciter {
       static const char* interface_name() { return "asset.sciter.com"; }
       //template<class C> hasset<C> interface_of() { hasset<C> p; get_interface(C::interface_name(), p.target()); return p; }
     };
-
+    
     inline long asset_add_ref(som_asset_t *ptr) {
       assert(ptr);
       assert(ptr->isa);
@@ -106,7 +110,7 @@ namespace sciter {
       assert(ptr->isa->asset_get_interface);
       return ptr->isa->asset_get_interface(ptr, name, out);
     }
-
+    
     inline som_passport_t* asset_get_passport(som_asset_t *ptr) {
       assert(ptr);
       assert(ptr->isa);
@@ -118,7 +122,7 @@ namespace sciter {
       assert(ptr);
       return ptr->isa;
     }
-
+    
     //hasset - yet another shared_ptr
     //         R here is an entity derived from som_asset_t
     template <class R> class hasset
@@ -164,9 +168,9 @@ namespace sciter {
       void** target() { release(); return (void**)&p; }
 
     };
-
+    
     // reference counted asset, uses intrusive add_ref/release counter
-    template<class C>
+    template<class C> 
       class asset : public iasset<asset<C>>
     {
       std::atomic<long> _ref_cntr;

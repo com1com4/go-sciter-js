@@ -3,8 +3,7 @@
 #ifndef __SCITER_OM_DEF_H__
 #define __SCITER_OM_DEF_H__
 
-#include "sciter-x-types.h"
-#include "sciter-x-value.h"
+#include "sciter-om.h"
 
 #ifdef __cplusplus
 #include <exception>
@@ -17,7 +16,7 @@
 #endif
 
 UINT64 SCAPI SciterAtomValue(const char* name);
-UINT64 SCAPI SciterAtomNameCB(UINT64 atomv, LPCSTR_RECEIVER* rcv, LPVOID rcv_param);
+SBOOL  SCAPI SciterAtomNameCB(UINT64 atomv, LPCSTR_RECEIVER* rcv, LPVOID rcv_param);
 
 typedef SBOOL(*som_prop_getter_t)(som_asset_t* thing, SOM_VALUE* p_value);
 typedef SBOOL(*som_prop_setter_t)(som_asset_t* thing, const SOM_VALUE* p_value);
@@ -35,7 +34,7 @@ typedef struct som_property_def_t {
   som_prop_getter_t getter;
   som_prop_setter_t setter;
 #ifdef __cplusplus
-  som_property_def_t(const char* n, som_prop_getter_t pg, som_prop_setter_t ps = nullptr) : name(SciterAtomValue(n)), getter(pg), setter(ps) {}
+  som_property_def_t(const char* n, som_prop_getter_t pg, som_prop_setter_t ps = nullptr) : name(SciterAtomValue(n)), getter(pg), setter(ps), reserved(0){}
 #endif
 } som_property_def_t;
 
@@ -45,7 +44,7 @@ typedef struct som_method_def_t {
   size_t       params;
   som_method_t func;
 #ifdef __cplusplus
-  som_method_def_t(const char* n, size_t p, som_method_t f) : name(SciterAtomValue(n)), params(p), func(f) {}
+  som_method_def_t(const char* n, size_t p, som_method_t f) : name(SciterAtomValue(n)), params(p), func(f), reserved(0) {}
 #endif
 } som_method_def_t;
 
@@ -83,8 +82,15 @@ typedef struct som_passport_t {
     &sciter::om::member_property<TC,decltype(TC::name),&TC::name>::getter,\
     &sciter::om::member_property<TC,decltype(TC::name),&TC::name>::setter)
 
+#define SOM_PROP_EX(ename,pname) som_property_def_t(#ename,\
+    &sciter::om::member_property<TC,decltype(TC::pname),&TC::pname>::getter,\
+    &sciter::om::member_property<TC,decltype(TC::pname),&TC::pname>::setter)
+
 #define SOM_RO_PROP(name) som_property_def_t(#name, \
     &sciter::om::member_property<TC,decltype(TC::name),&TC::name>::getter)
+
+#define SOM_RO_PROP_EX(ename,pname) som_property_def_t(#ename, \
+    &sciter::om::member_property<TC,decltype(TC::pname),&TC::pname>::getter)
 
 #define SOM_VIRTUAL_PROP(name,prop_getter,prop_setter) som_property_def_t(#name, \
     &sciter::om::member_getter_function<decltype(&TC::prop_getter)>::thunk<&TC::prop_getter>,\
@@ -495,10 +501,8 @@ namespace sciter {
       struct member_getter_function<Ret(Type::*)() const> {
         template <Ret(Type::*Func)() const> static SBOOL thunk(som_asset_t* thing, SOM_VALUE* p_value)
         {
-          //try { *p_value = SOM_VALUE((static_cast<Type*>(thing)->*Func)()); return TRUE; }
-          //catch (exception& e) { *p_value = SOM_VALUE::make_error(e.what()); return TRUE; }
-          *p_value = SOM_VALUE((static_cast<Type*>(thing)->*Func)());
-          return TRUE;
+          try { *p_value = SOM_VALUE((static_cast<Type*>(thing)->*Func)()); return TRUE; }
+          catch (exception& e) { *p_value = SOM_VALUE::make_error(e.what()); return TRUE; }
         }
       };
 
@@ -506,10 +510,13 @@ namespace sciter {
       struct member_setter_function<bool(Type::*)(P0)> {
         template <bool(Type::*Func)(P0)> static SBOOL thunk(som_asset_t* thing, const SOM_VALUE* p_value)
         {
-          //try { bool r = (static_cast<Type*>(thing)->*Func)(p_value->get<P0>()); return r; }
-          //catch (exception& e) { *p_value = SOM_VALUE::make_error(e.what()); return TRUE; }
-          bool r = (static_cast<Type*>(thing)->*Func)(p_value->get<P0>());
-          return r;
+          try {
+            bool r = (static_cast<Type*>(thing)->*Func)(p_value->get<P0>());
+            return r;
+          }
+          catch (exception&) { 
+            return false;
+          }
         }
       };
 
@@ -533,7 +540,7 @@ namespace sciter {
       };
 
       template <class Type> struct prop_get_accessor;
-
+            
 
       // bool get_any_prop(const std::string& name, TV& val);
       template <class Type, class TV>

@@ -6,7 +6,7 @@ REQUEST_RESULT SCAPI RequestUse( HREQUEST rq ) { return rapi()->RequestUse(rq); 
 REQUEST_RESULT SCAPI RequestUnUse( HREQUEST rq ) { return rapi()->RequestUnUse(rq); }
 REQUEST_RESULT SCAPI RequestUrl( HREQUEST rq, LPCSTR_RECEIVER* rcv, LPVOID rcv_param ) { return rapi()->RequestUrl(rq,rcv,rcv_param); }
 REQUEST_RESULT SCAPI RequestContentUrl( HREQUEST rq, LPCSTR_RECEIVER* rcv, LPVOID rcv_param ) { return rapi()->RequestContentUrl(rq,rcv,rcv_param); }
-REQUEST_RESULT SCAPI RequestGetRequestType( HREQUEST rq, REQUEST_RQ_TYPE* pType ) { return rapi()->RequestGetRequestType(rq,pType); }
+REQUEST_RESULT SCAPI RequestGetRequestType( HREQUEST rq, LPCSTR* pType ) { return rapi()->RequestGetRequestType(rq,pType); }
 REQUEST_RESULT SCAPI RequestGetRequestedDataType( HREQUEST rq, SciterResourceType* pData ) { return rapi()->RequestGetRequestedDataType(rq,pData); }
 REQUEST_RESULT SCAPI RequestGetReceivedDataType( HREQUEST rq, LPCSTR_RECEIVER* rcv, LPVOID rcv_param ) { return rapi()->RequestGetReceivedDataType(rq,rcv,rcv_param); }
 REQUEST_RESULT SCAPI RequestGetNumberOfParameters( HREQUEST rq, UINT* pNumber ) { return rapi()->RequestGetNumberOfParameters(rq,pNumber); }

@@ -45,10 +45,12 @@
  **/
 LPCWSTR SCAPI SciterClassName(void);
 
-/**Returns major and minor version of Sciter engine.
-  * \return UINT, hiword (16-bit) contains major number and loword contains minor number;
+/**Returns components of of Sciter engine version vector. 
+  * Version is a vector of four components [v0,v1,v2,v3].
+  * \param n, UINT, number in 0 ... 3 range
+  * \return UINT;
  **/
- UINT  SCAPI SciterVersion(SBOOL major);
+ UINT  SCAPI SciterVersion(UINT n);
 
 /** #SC_LOAD_DATA notification return codes */
 enum SC_LOAD_DATA_RETURN_CODES
@@ -147,6 +149,13 @@ enum SC_LOAD_DATA_RETURN_CODES
  *
  **/
 #define SC_INVALIDATE_RECT 0x09
+
+ /**This notification is sent when the engine needs some area to be redrawn
+
+  * \param lParam #LPSCN_SET_CURSOR
+  *
+  **/
+#define SC_SET_CURSOR 0x0A
 
 
 /**Notification callback structure.
@@ -276,6 +285,18 @@ typedef struct SCN_INVALIDATE_RECT {
 } SCN_INVALIDATE_RECT;
 
 typedef SCN_INVALIDATE_RECT *LPSCN_INVALIDATE_RECT;
+
+
+/**This structure is used by #SC_SET_CURSOR notification.
+ *\copydoc SC_SET_CURSOR **/
+typedef struct SCN_SET_CURSOR {
+  UINT    code; /**< [in] = SC_SET_CURSOR */
+  HWINDOW hwnd; /**< [in] HWINDOW of the window this callback was attached to.*/
+  UINT    cursorId;   /**< [in] #CURSOR_TYPE, if cursorUrl == NULL */
+  LPCSTR  cursorUrl;  /**< [in] cursor URL */
+} SCN_SET_CURSOR;
+
+typedef SCN_SET_CURSOR* LPSCN_SET_CURSOR;
 
 
 #include "sciter-x-behavior.h"
@@ -436,23 +457,17 @@ typedef SCN_INVALIDATE_RECT *LPSCN_INVALIDATE_RECT;
  SBOOL SCAPI SciterTranslateMessage(MSG* lpMsg);
 #endif
 
-/**Set various options.
- *
- * \param[in] hWnd \b HWINDOW, Sciter window handle.
- * \param[in] option \b UINT, id of the option, one of SCITER_RT_OPTIONS
- * \param[in] option \b UINT, value of the option.
- *
- **/
 
-enum SCRIPT_RUNTIME_FEATURES
+
+typedef enum SCRIPT_RUNTIME_FEATURES
 {
   ALLOW_FILE_IO = 0x00000001,
   ALLOW_SOCKET_IO = 0x00000002,
   ALLOW_EVAL = 0x00000004,
   ALLOW_SYSINFO = 0x00000008
-};
+} SCRIPT_RUNTIME_FEATURES;
 
-enum SCITER_RT_OPTIONS
+typedef enum SCITER_RT_OPTIONS
 {
    SCITER_SMOOTH_SCROLL = 1,      // value:TRUE - enable, value:FALSE - disable, enabled by default
    SCITER_CONNECTION_TIMEOUT = 2, // value: milliseconds, connection timeout of http client
@@ -482,9 +497,75 @@ enum SCITER_RT_OPTIONS
 
    SCITER_SET_PX_AS_DIP = 16, // value 1 - 1px in CSS is treated as 1dip, value 0 - default behavior - 1px is a physical pixel 
 
-};
+   SCITER_ENABLE_UIAUTOMATION = 17,  // hWnd - N/A , TRUE/FALSE, enables UIAutomation support. 
 
+   SCITER_USE_INTERNAL_HTTP_CLIENT = 18,  // hWnd - N/A , TRUE - use internal HTTP client
+                                          //              FALSE - use system HTTP client (on platforms that has it: Win,Mac,Lin)
+
+} SCITER_RT_OPTIONS;
+
+/**Set various options.
+ *
+ * \param[in] hWnd \b HWINDOW, Sciter window handle.
+ * \param[in] option \b UINT, id of the option, one of SCITER_RT_OPTIONS
+ * \param[in] option \b UINT, value of the option.
+ *
+ **/
  SBOOL SCAPI SciterSetOption(HWINDOW hWnd, UINT option, UINT_PTR value );
+
+ /** Application related operations */
+
+ typedef enum SCITER_APP_CMD {
+   SCITER_APP_STOP = 0,     /// reuest to quit message pump loop
+   SCITER_APP_LOOP = 1,     /// run message pump loop until SCITER_APP_STOP or main window closure
+   SCITER_APP_INIT = 2,     /// pass argc/argv to application: p1 - argc, p2 - CHAR** argv 
+   SCITER_APP_SHUTDOWN = 3, /// free resources of the application 
+ } SCITER_APP_CMD;
+
+ /** Perform application related operation
+ *
+ * \param[in] appCmd \b SCITER_APP_CMD, application wide command
+ * \param[in] p1 \b UINT_PTR, first parameter 
+ * \param[in] p2 \b UINT_PTR, second parameter
+ *
+ * Note: SciterExec(SCITER_APP_LOOP,0,0) will not return until main window is present or SCITER_APP_STOP received
+ * 
+ **/
+ 
+ INT_PTR SCAPI SciterExec(UINT appCmd /*SCITER_APP_CMD*/, UINT_PTR p1, UINT_PTR p2);
+ 
+
+ typedef enum SCITER_WINDOW_CMD {
+   SCITER_WINDOW_SET_STATE = 1, // p1 - SCITER_WINDOW_STATE, p2 - N/A
+   SCITER_WINDOW_GET_STATE = 2, // p1 - N/A , p2 - N/A, returns SCITER_WINDOW_STATE
+   SCITER_WINDOW_ACTIVATE  = 3, // p1 - BOOL, true - bring_to_front , p2 - N/A
+   SCITER_WINDOW_SET_PLACEMENT = 4, // p1 - const POINT*, position, p2 const SIZE* - dimension, in ppx, either one can be null
+   SCITER_WINDOW_GET_PLACEMENT = 5, // p1 - POINT*, position, p2 SIZE* - dimension, in ppx, either one can be null
+
+   SCITER_WINDOW_GET_VULKAN_ENVIRONMENT = 20, // p1 - &SciterVulkanEnvironment, p2 - sizeof(SciterVulkanEnvironment)
+   SCITER_WINDOW_GET_VULKAN_CONTEXT = 21, // p1 - &SciterVulkanContext, p2 - sizeof(SciterVulkanContext)
+   SCITER_WINDOW_SET_VULKAN_BRIDGE = 22, // p1 - SciterWindowVulkanBridge*, p2 - N/A
+ } SCITER_WINDOW_CMD;
+
+ typedef enum SCITER_WINDOW_STATE {
+   SCITER_WINDOW_STATE_CLOSED = 0, // close window
+   SCITER_WINDOW_STATE_SHOWN = 1,
+   SCITER_WINDOW_STATE_MINIMIZED = 2,
+   SCITER_WINDOW_STATE_MAXIMIZED = 3,
+   SCITER_WINDOW_STATE_HIDDEN = 4,
+   SCITER_WINDOW_STATE_FULL_SCREEN = 5,
+ } SCITER_WINDOW_STATE;
+
+ /** Perform window related operation
+ *
+ * \param[in] windowCmd \b SCITER_WINDOW_CMD, window related command
+ * \param[in] p1 \b UINT_PTR, first parameter
+ * \param[in] p2 \b UINT_PTR, second parameter
+ *
+ **/
+
+ INT_PTR SCAPI SciterWindowExec(HWINDOW hwnd, UINT windowCmd /*SCITER_WINDOW_CMD*/, UINT_PTR p1, UINT_PTR p2);
+
 
 /**Get current pixels-per-inch metrics of the Sciter window
  *
@@ -640,7 +721,7 @@ SBOOL SCAPI SciterRenderOnDirectXTexture(HWINDOW hwnd, HELEMENT elementToRenderO
   typedef LPVOID SciterWindowDelegate;
 #endif
 
-enum SCITER_CREATE_WINDOW_FLAGS {
+typedef enum SCITER_CREATE_WINDOW_FLAGS {
    SW_CHILD      = (1 << 0), // child window only, if this flag is set all other flags ignored
    SW_TITLEBAR   = (1 << 1), // toplevel window, has titlebar
    SW_RESIZEABLE = (1 << 2), // has resizeable frame
@@ -652,7 +733,7 @@ enum SCITER_CREATE_WINDOW_FLAGS {
    SW_POPUP      = (1 << 8), // the window is created as topmost window.
    SW_ENABLE_DEBUG = (1 << 9), // make this window inspector ready
    SW_OWNS_VM      = (1 << 10), // it has its own script VM
-};
+} SCITER_CREATE_WINDOW_FLAGS;
 
 #if !defined(WINDOWLESS)
 /** Create sciter window.
@@ -681,19 +762,20 @@ enum SCITER_CREATE_WINDOW_FLAGS {
  *
  **/
 
-enum OUTPUT_SUBSYTEMS
+typedef enum OUTPUT_SUBSYTEMS
 {
    OT_DOM = 0,       // html parser & runtime
    OT_CSSS,          // csss! parser & runtime
    OT_CSS,           // css parser
    OT_TIS,           // TIS parser & runtime
-};
-enum OUTPUT_SEVERITY
+} OUTPUT_SUBSYTEMS;
+
+typedef enum OUTPUT_SEVERITY
 {
   OS_INFO,
   OS_WARNING,
   OS_ERROR,
-};
+} OUTPUT_SEVERITY;
 
 typedef VOID (SC_CALLBACK* DEBUG_OUTPUT_PROC)(LPVOID param, UINT subsystem /*OUTPUT_SUBSYTEMS*/, UINT severity, LPCWSTR text, UINT text_length);
 

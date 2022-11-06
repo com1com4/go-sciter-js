@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/sciter-sdk/go-sciter"
-	"github.com/sciter-sdk/go-sciter/window"
+	"github.com/com1com4/go-sciter-js"
+	"github.com/com1com4/go-sciter-js/window"
 )
 
-//一些基础操作
+// 一些基础操作
 func base(root *sciter.Element) {
 	//通过ID选择元素
 	ul, _ := root.SelectById("list")
@@ -25,7 +25,7 @@ func base(root *sciter.Element) {
 	fmt.Println(n)
 }
 
-//动态的添加元素
+// 动态的添加元素
 func addElement(root *sciter.Element) {
 	//创建一个元素
 	add, _ := sciter.CreateElement("li", "444")
@@ -50,7 +50,7 @@ func addElement(root *sciter.Element) {
 	}
 }
 
-//删除元素
+// 删除元素
 func delElement(root *sciter.Element) {
 	ul, _ := root.SelectFirst("ul#list")
 	//获取第一个子元素，下标从0开始
@@ -65,7 +65,7 @@ func delElement(root *sciter.Element) {
 	li2.Delete()
 }
 
-//修改元素
+// 修改元素
 func updElement(root *sciter.Element) {
 	li, _ := root.SelectFirst("ul#list>li:nth-child(1)")
 	//给元素设置样式
@@ -83,7 +83,7 @@ func updElement(root *sciter.Element) {
 	li2.SetText("我改我改")
 }
 
-//查找元素
+// 查找元素
 func selElement(root *sciter.Element) {
 	//通过css选择器选择元素，会返回*Element的slice
 	root.Select("ul#list>li")

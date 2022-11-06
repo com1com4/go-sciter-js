@@ -5,11 +5,11 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/sciter-sdk/go-sciter"
-	"github.com/sciter-sdk/go-sciter/window"
+	"github.com/com1com4/go-sciter-js"
+	"github.com/com1com4/go-sciter-js/window"
 )
 
-//设置元素的处理程序
+// 设置元素的处理程序
 func setElementHandlers(root *sciter.Element) {
 	btn1, _ := root.SelectById("btn1")
 	//处理元素简单点击事件
@@ -36,7 +36,7 @@ func setElementHandlers(root *sciter.Element) {
 	fmt.Println(data.String())
 }
 
-//设置回调
+// 设置回调
 func setCallbackHandlers(w *window.Window) {
 	//CallbackHandler是一个结构，里面定义了一些方法
 	//你可以通过实现这些方法，自定义自已的回调
@@ -56,7 +56,7 @@ func setCallbackHandlers(w *window.Window) {
 	w.SetCallback(cb)
 }
 
-//定义函数
+// 定义函数
 func setWinHandler(w *window.Window) {
 	//定义函数，在tis脚本中需要通过view对象调用
 
@@ -70,7 +70,7 @@ func setWinHandler(w *window.Window) {
 	})
 }
 
-//测试调用函数
+// 测试调用函数
 func testCallFunc(w *window.Window) {
 	//调用tis脚本中定义的函数
 	data, _ := w.Call("sum", sciter.NewValue(10), sciter.NewValue(20))

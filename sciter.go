@@ -73,9 +73,9 @@ func ClassName() string {
 func Version(major bool) uint {
 	var v C.UINT
 	if major {
-		v = C.SciterVersion(C.SBOOL(1))
+		v = C.SciterVersion(C.UINT(1))
 	} else {
-		v = C.SciterVersion(C.SBOOL(0))
+		v = C.SciterVersion(C.UINT(0))
 	}
 	return uint(v)
 }
@@ -94,18 +94,18 @@ func SetDLL(dir string) {
 	C.SCITER_DLL_PATH = C.CString(dir)
 }
 
-//This function is used in response to SCN_LOAD_DATA request.
+// This function is used in response to SCN_LOAD_DATA request.
 //
-//  \param[in] hwnd \b HWINDOW, Sciter window handle.
-//  \param[in] uri \b LPCWSTR, URI of the data requested by Sciter.
-//  \param[in] data \b LPBYTE, pointer to data buffer.
-//  \param[in] dataLength \b UINT, length of the data in bytes.
-//  \return \b BOOL, TRUE if Sciter accepts the data or \c FALSE if error occured
-//  (for example this function was called outside of #SCN_LOAD_DATA request).
+//	\param[in] hwnd \b HWINDOW, Sciter window handle.
+//	\param[in] uri \b LPCWSTR, URI of the data requested by Sciter.
+//	\param[in] data \b LPBYTE, pointer to data buffer.
+//	\param[in] dataLength \b UINT, length of the data in bytes.
+//	\return \b BOOL, TRUE if Sciter accepts the data or \c FALSE if error occured
+//	(for example this function was called outside of #SCN_LOAD_DATA request).
 //
-//  \warning If used, call of this function MUST be done ONLY while handling
-//  SCN_LOAD_DATA request and in the same thread. For asynchronous resource loading
-//  use SciterDataReadyAsync
+//	\warning If used, call of this function MUST be done ONLY while handling
+//	SCN_LOAD_DATA request and in the same thread. For asynchronous resource loading
+//	use SciterDataReadyAsync
 func (s *Sciter) DataReady(uri string, data []byte) bool {
 	var pData C.LPCBYTE
 	if len(data) > 0 {
@@ -126,14 +126,15 @@ var (
 
 //SciterDataReadyAsync (HWINDOW hwnd,LPCWSTR uri, LPCBYTE data, UINT dataLength, LPVOID requestId) ;//{ return SAPI()->SciterDataReadyAsync (hwnd,uri, data, dataLength, requestId); }
 
-//Use this function outside of SCN_LOAD_DATA request. This function is needed when you
-//  you have your own http client implemented in your application.
+// Use this function outside of SCN_LOAD_DATA request. This function is needed when you
 //
-//  \param[in] hwnd \b HWINDOW, Sciter window handle.
-//  \param[in] uri \b LPCWSTR, URI of the data requested by Sciter.
-//  \param[in] data \b LPBYTE, pointer to data buffer.
-//  \param[in] requestId \b LPVOID, SCN_LOAD_DATA requestId.
-//  \return \b BOOL, TRUE if Sciter accepts the data or \c FALSE if error occured
+//	you have your own http client implemented in your application.
+//
+//	\param[in] hwnd \b HWINDOW, Sciter window handle.
+//	\param[in] uri \b LPCWSTR, URI of the data requested by Sciter.
+//	\param[in] data \b LPBYTE, pointer to data buffer.
+//	\param[in] requestId \b LPVOID, SCN_LOAD_DATA requestId.
+//	\return \b BOOL, TRUE if Sciter accepts the data or \c FALSE if error occured
 func (s *Sciter) DataReadyAsync(uri string, data []byte, requestId C.HREQUEST) bool {
 	// args
 	var pData C.LPCBYTE
@@ -164,14 +165,14 @@ func (s *Sciter) LoadFile(filename string) error {
 
 // BOOL SciterLoadHtml (HWINDOW hWndSciter, LPCBYTE html, UINT htmlSize, LPCWSTR baseUrl) ;//{ return SAPI()->SciterLoadHtml (hWndSciter,html,htmlSize,baseUrl); }
 
-//Load HTML from in memory buffer with base.
+// Load HTML from in memory buffer with base.
 //
-//  \param[in] hWndSciter \b HWINDOW, Sciter window handle.
-//  \param[in] html \b LPCBYTE, Address of HTML to load.
-//  \param[in] htmlSize \b UINT, Length of the array pointed by html parameter.
-//  \param[in] baseUrl \b LPCWSTR, base URL. All relative links will be resolved against
-//                                 this URL.
-//  \return \b BOOL, \c TRUE if the text was parsed and loaded successfully, FALSE otherwise.
+//	\param[in] hWndSciter \b HWINDOW, Sciter window handle.
+//	\param[in] html \b LPCBYTE, Address of HTML to load.
+//	\param[in] htmlSize \b UINT, Length of the array pointed by html parameter.
+//	\param[in] baseUrl \b LPCWSTR, base URL. All relative links will be resolved against
+//	                               this URL.
+//	\return \b BOOL, \c TRUE if the text was parsed and loaded successfully, FALSE otherwise.
 func (s *Sciter) LoadHtml(html, baseUrl string) error {
 	// args
 	chtml := (C.LPCBYTE)(unsafe.Pointer(StringToBytePtr(html)))
@@ -246,11 +247,11 @@ var (
 
 // VOID SciterSetCallback (HWINDOW hWndSciter, LPSciterHostCallback cb, LPVOID cbParam)
 
-//Set \link #SCITER_NOTIFY() notification callback function \endlink.
+// Set \link #SCITER_NOTIFY() notification callback function \endlink.
 //
-//  \param[in] hWndSciter \b HWINDOW, Sciter window handle.
-//  \param[in] cb \b SCITER_NOTIFY*, \link #SCITER_NOTIFY() callback function \endlink.
-//  \param[in] cbParam \b LPVOID, parameter that will be passed to \link #SCITER_NOTIFY() callback function \endlink as vParam paramter.
+//	\param[in] hWndSciter \b HWINDOW, Sciter window handle.
+//	\param[in] cb \b SCITER_NOTIFY*, \link #SCITER_NOTIFY() callback function \endlink.
+//	\param[in] cbParam \b LPVOID, parameter that will be passed to \link #SCITER_NOTIFY() callback function \endlink as vParam paramter.
 func (s *Sciter) SetCallback(handler *CallbackHandler) {
 	if _, ok := s.callbacks[handler]; ok {
 		return
@@ -266,10 +267,10 @@ func (s *Sciter) SetCallback(handler *CallbackHandler) {
 
 // BOOL SciterSetMasterCSS (LPCBYTE utf8, UINT numBytes)
 
-//Set Master style sheet.
+// Set Master style sheet.
 //
-//  \param[in] utf8 \b LPCBYTE, start of CSS buffer.
-//  \param[in] numBytes \b UINT, number of bytes in utf8.
+//	\param[in] utf8 \b LPCBYTE, start of CSS buffer.
+//	\param[in] numBytes \b UINT, number of bytes in utf8.
 func SetMasterCSS(data string) (ok bool) {
 	// args
 	cutf8 := C.LPCBYTE(unsafe.Pointer(StringToBytePtr(data)))
@@ -284,10 +285,10 @@ func SetMasterCSS(data string) (ok bool) {
 
 // BOOL SciterAppendMasterCSS (LPCBYTE utf8, UINT numBytes)
 
-//Append Master style sheet.
+// Append Master style sheet.
 //
-//  \param[in] utf8 \b LPCBYTE, start of CSS buffer.
-//  \param[in] numBytes \b UINT, number of bytes in utf8.
+//	\param[in] utf8 \b LPCBYTE, start of CSS buffer.
+//	\param[in] numBytes \b UINT, number of bytes in utf8.
 func AppendMasterCSS(data string) (ok bool) {
 	// args
 	cutf8 := C.LPCBYTE(unsafe.Pointer(StringToBytePtr(data)))
@@ -302,12 +303,12 @@ func AppendMasterCSS(data string) (ok bool) {
 
 // BOOL SciterSetCSS (HWINDOW hWndSciter, LPCBYTE utf8, UINT numBytes, LPCWSTR baseUrl, LPCWSTR mediaType)
 
-//Set (reset) style sheet of current document.
-//Will reset styles for all elements according to given CSS (utf8)
+// Set (reset) style sheet of current document.
+// Will reset styles for all elements according to given CSS (utf8)
 //
-//  \param[in] hWndSciter \b HWINDOW, Sciter window handle.
-//  \param[in] utf8 \b LPCBYTE, start of CSS buffer.
-//  \param[in] numBytes \b UINT, number of bytes in utf8.
+//	\param[in] hWndSciter \b HWINDOW, Sciter window handle.
+//	\param[in] utf8 \b LPCBYTE, start of CSS buffer.
+//	\param[in] numBytes \b UINT, number of bytes in utf8.
 func (s *Sciter) SetCSS(css, baseUrl, mediaType string) (ok bool) {
 	// args
 	ccss := C.LPCBYTE(unsafe.Pointer(StringToBytePtr(css)))
@@ -324,16 +325,16 @@ func (s *Sciter) SetCSS(css, baseUrl, mediaType string) (ok bool) {
 
 // BOOL SciterSetMediaType (HWINDOW hWndSciter, LPCWSTR mediaType)
 
-//Set media type of this sciter instance.
+// Set media type of this sciter instance.
 //
-//  \param[in] hWndSciter \b HWINDOW, Sciter window handle.
-//  \param[in] mediaType \b LPCWSTR, media type name.
+//	\param[in] hWndSciter \b HWINDOW, Sciter window handle.
+//	\param[in] mediaType \b LPCWSTR, media type name.
 //
-//  For example media type can be "handheld", "projection", "screen", "screen-hires", etc.
-//  By default sciter window has "screen" media type.
+//	For example media type can be "handheld", "projection", "screen", "screen-hires", etc.
+//	By default sciter window has "screen" media type.
 //
-//  Media type name is used while loading and parsing style sheets in the engine so
-//  you should call this function *before* loading document in it.
+//	Media type name is used while loading and parsing style sheets in the engine so
+//	you should call this function *before* loading document in it.
 func (s *Sciter) SetMediaType(mediaType string) (ok bool) {
 	// args
 	cmediaType := C.LPCWSTR(unsafe.Pointer(StringToWcharPtr(mediaType)))
@@ -460,13 +461,14 @@ func SetOption(option Sciter_RT_OPTIONS, value uint) (ok bool) {
 // BOOL     SciterSetHomeURL (HWINDOW hWndSciter, LPCWSTR baseUrl)
 
 // Set sciter home url.
-//   home url is used for resolving sciter: urls
-//   If you will set it like SciterSetHomeURL(hwnd,"http://sciter.com/modules/")
-//   then <script src="sciter:lib/root-extender.tis"> will load
-//   root-extender.tis from http://sciter.com/modules/lib/root-extender.tis
 //
-//  \param[in] hWndSciter \b HWINDOW, Sciter window handle.
-//  \param[in] baseUrl \b LPCWSTR, URL of sciter home.
+//	 home url is used for resolving sciter: urls
+//	 If you will set it like SciterSetHomeURL(hwnd,"http://sciter.com/modules/")
+//	 then <script src="sciter:lib/root-extender.tis"> will load
+//	 root-extender.tis from http://sciter.com/modules/lib/root-extender.tis
+//
+//	\param[in] hWndSciter \b HWINDOW, Sciter window handle.
+//	\param[in] baseUrl \b LPCWSTR, URL of sciter home.
 func (s *Sciter) SetHomeURL(baseUrl string) (ok bool) {
 	// args
 	cbaseUrl := C.LPCWSTR(unsafe.Pointer(StringToWcharPtr(baseUrl)))
@@ -508,14 +510,16 @@ func (s *Sciter) CloseArchive() {
 //
 // Pack resources using `packfolder` tool:
 //
-//   `$ packfolder res_folder res_packed.go -v resource_name -go`
+//	`$ packfolder res_folder res_packed.go -v resource_name -go`
 //
 // Usage:
 //
-//```
-//   win.SetResourceArchive(resource_name)
-//   win.LoadFile("this://app//index.htm")
-//```
+// ```
+//
+//	win.SetResourceArchive(resource_name)
+//	win.LoadFile("this://app//index.htm")
+//
+// ```
 func (s *Sciter) SetResourceArchive(data []byte) {
 
 	// register `this://app/` schema
@@ -592,18 +596,18 @@ func (e *Element) use() error {
 
 // SCDOM_RESULT  Sciter_UnuseElement(HELEMENT he) ;//{ return SAPI()->Sciter_UnuseElement(he); }
 
-//Marks DOM object as unused (a.k.a. Release).
+// Marks DOM object as unused (a.k.a. Release).
 //
 // UnUse would be called automatically when released by Go Runtime
 // for *Element created by WrapElement(...)
 //
-//  Get handle of every element's child element.
-//  \param[in] he \b #HELEMENT
-//  \return \b #SCDOM_RESULT SCAPI
+//	Get handle of every element's child element.
+//	\param[in] he \b #HELEMENT
+//	\return \b #SCDOM_RESULT SCAPI
 //
-//  Application should call this function when it does not need element's
-//  handle anymore.
-//  \sa #Sciter_UseElement()
+//	Application should call this function when it does not need element's
+//	handle anymore.
+//	\sa #Sciter_UseElement()
 func (e *Element) unUse() error {
 	r := C.Sciter_UnuseElement(e.handle)
 	return wrapDomResult(r, "Sciter_UnuseElement")
@@ -628,13 +632,14 @@ func (e *Element) finalize() {
 
 // SCDOM_RESULT  SciterGetRootElement(HWINDOW hwnd, HELEMENT *phe) ;//{ return SAPI()->SciterGetRootElement(hwnd, phe); }
 
-//Get root DOM element of HTML document.
-//   \param[in] hwnd \b HWINDOW, Sciter window for which you need to get root
-//   element
-//   \param[out ] phe \b #HELEMENT*, variable to receive root element
-//   \return \b #SCDOM_RESULT SCAPI
+// Get root DOM element of HTML document.
 //
-//   Root DOM object is always a 'HTML' element of the document.
+//	\param[in] hwnd \b HWINDOW, Sciter window for which you need to get root
+//	element
+//	\param[out ] phe \b #HELEMENT*, variable to receive root element
+//	\return \b #SCDOM_RESULT SCAPI
+//
+//	Root DOM object is always a 'HTML' element of the document.
 func (s *Sciter) GetRootElement() (*Element, error) {
 	var he C.HELEMENT
 	r := C.SciterGetRootElement(s.hwnd, &he)
@@ -643,15 +648,16 @@ func (s *Sciter) GetRootElement() (*Element, error) {
 
 // SCDOM_RESULT  SciterGetFocusElement(HWINDOW hwnd, HELEMENT *phe) ;//{ return SAPI()->SciterGetFocusElement(hwnd, phe); }
 
-//Get focused DOM element of HTML document.
-//   \param[in] hwnd \b HWINDOW, Sciter window for which you need to get focus
-//   element
-//   \param[out ] phe \b #HELEMENT*, variable to receive focus element
-//   \return \b #SCDOM_RESULT SCAPI
+// Get focused DOM element of HTML document.
 //
-//   phe can have null value (0).
+//	\param[in] hwnd \b HWINDOW, Sciter window for which you need to get focus
+//	element
+//	\param[out ] phe \b #HELEMENT*, variable to receive focus element
+//	\return \b #SCDOM_RESULT SCAPI
 //
-//   COMMENT: To set focus on element use SciterSetElementState(STATE_FOCUS,0)
+//	phe can have null value (0).
+//
+//	COMMENT: To set focus on element use SciterSetElementState(STATE_FOCUS,0)
 func (s *Sciter) GetFocusElement() (*Element, error) {
 	var he C.HELEMENT
 	r := C.SciterGetFocusElement(s.hwnd, &he)
@@ -661,13 +667,14 @@ func (s *Sciter) GetFocusElement() (*Element, error) {
 // SCDOM_RESULT  SciterFindElement(HWINDOW hwnd, POINT pt, HELEMENT* phe) ;//{ return SAPI()->SciterFindElement(hwnd,pt,phe); }
 
 // Find DOM element by coordinate.
-//   \param[in] hwnd \b HWINDOW, Sciter window for which you need to find
-//   elementz
-//   \param[in] pt \b POINT, coordinates, window client area relative.
-//   \param[out ] phe \b #HELEMENT*, variable to receive found element handle.
-//   \return \b #SCDOM_RESULT SCAPI
 //
-//   If element was not found then *phe will be set to zero.
+//	\param[in] hwnd \b HWINDOW, Sciter window for which you need to find
+//	elementz
+//	\param[in] pt \b POINT, coordinates, window client area relative.
+//	\param[out ] phe \b #HELEMENT*, variable to receive found element handle.
+//	\return \b #SCDOM_RESULT SCAPI
+//
+//	If element was not found then *phe will be set to zero.
 func (s *Sciter) FindElement(pt Point) (*Element, error) {
 	var he C.HELEMENT
 	cpt := *(*C.POINT)(unsafe.Pointer(&pt))
@@ -678,15 +685,16 @@ func (s *Sciter) FindElement(pt Point) (*Element, error) {
 // SCDOM_RESULT  SciterGetChildrenCount(HELEMENT he, UINT* count) ;//{ return SAPI()->SciterGetChildrenCount(he, count); }
 
 // Get number of child elements.
-//   \param[in] he \b #HELEMENT, element which child elements you need to count
-//   \param[out] count \b UINT*, variable to receive number of child elements
-//   \return \b #SCDOM_RESULT SCAPI
 //
-//   \par Example:
-//   for paragraph defined as
-//   \verbatim <p>Hello <b>wonderfull</b> world!</p> \endverbatim
-//   count will be set to 1 as the paragraph has only one sub element:
-//   \verbatim <b>wonderfull</b> \endverbatim
+//	\param[in] he \b #HELEMENT, element which child elements you need to count
+//	\param[out] count \b UINT*, variable to receive number of child elements
+//	\return \b #SCDOM_RESULT SCAPI
+//
+//	\par Example:
+//	for paragraph defined as
+//	\verbatim <p>Hello <b>wonderfull</b> world!</p> \endverbatim
+//	count will be set to 1 as the paragraph has only one sub element:
+//	\verbatim <b>wonderfull</b> \endverbatim
 func (e *Element) ChildrenCount() (int, error) {
 	var count C.UINT
 	r := C.SciterGetChildrenCount(e.handle, &count)
@@ -696,17 +704,18 @@ func (e *Element) ChildrenCount() (int, error) {
 // SCDOM_RESULT  SciterGetNthChild(HELEMENT he, UINT n, HELEMENT* phe) ;//{ return SAPI()->SciterGetNthChild(he,n,phe); }
 
 // Get handle of every element's child element.
-//   \param[in] he \b #HELEMENT
-//   \param[in] n \b UINT, number of the child element
-//   \param[out] phe \b #HELEMENT*, variable to receive handle of the child
-//   element
-//   \return \b #SCDOM_RESULT SCAPI
 //
-//   \par Example:
-//   for paragraph defined as
-//   \verbatim <p>Hello <b>wonderfull</b> world!</p> \endverbatim
-//   *phe will be equal to handle of &lt;b&gt; element:
-//   \verbatim <b>wonderfull</b> \endverbatim
+//	\param[in] he \b #HELEMENT
+//	\param[in] n \b UINT, number of the child element
+//	\param[out] phe \b #HELEMENT*, variable to receive handle of the child
+//	element
+//	\return \b #SCDOM_RESULT SCAPI
+//
+//	\par Example:
+//	for paragraph defined as
+//	\verbatim <p>Hello <b>wonderfull</b> world!</p> \endverbatim
+//	*phe will be equal to handle of &lt;b&gt; element:
+//	\verbatim <b>wonderfull</b> \endverbatim
 func (e *Element) NthChild(n int) (*Element, error) {
 	var he C.HELEMENT
 	r := C.SciterGetNthChild(e.handle, C.UINT(n), &he)
@@ -779,12 +788,13 @@ var (
 
 // SCDOM_RESULT  SciterGetElementHtmlCB(HELEMENT he, BOOL outer, LPCBYTE_RECEIVER* rcv, LPVOID rcv_param) ;//{ return SAPI()->SciterGetElementHtmlCB( he, outer, rcv, rcv_param); }
 
-//Get html representation of the element.
-//  \param[in] he \b #HELEMENT
-//  \param[in] outer \b BOOL, if TRUE will retunr outer HTML otherwise inner.
-//  \param[in] rcv \b pointer to function receiving UTF8 encoded HTML.
-//  \param[in] rcv_param \b parameter that passed to rcv as it is.
-//  \return \b #SCDOM_RESULT SCAPI
+// Get html representation of the element.
+//
+//	\param[in] he \b #HELEMENT
+//	\param[in] outer \b BOOL, if TRUE will retunr outer HTML otherwise inner.
+//	\param[in] rcv \b pointer to function receiving UTF8 encoded HTML.
+//	\param[in] rcv_param \b parameter that passed to rcv as it is.
+//	\return \b #SCDOM_RESULT SCAPI
 func (e *Element) Html(outer bool) (string, error) {
 	var bs []byte
 	// args
@@ -802,10 +812,11 @@ func (e *Element) Html(outer bool) (string, error) {
 // SCDOM_RESULT  SciterGetElementTextCB(HELEMENT he, LPCWSTR_RECEIVER* rcv, LPVOID rcv_param)
 
 // Get inner text of the element as LPCWSTR (utf16 words).
-//  \param[in] he \b #HELEMENT
-//  \param[in] rcv \b pointer to the function receiving UTF16 encoded plain text
-//  \param[in] rcv_param \b param passed that passed to LPCWSTR_RECEIVER "as is"
-//  \return \b #SCDOM_RESULT SCAPI
+//
+//	\param[in] he \b #HELEMENT
+//	\param[in] rcv \b pointer to the function receiving UTF16 encoded plain text
+//	\param[in] rcv_param \b param passed that passed to LPCWSTR_RECEIVER "as is"
+//	\return \b #SCDOM_RESULT SCAPI
 func (e *Element) Text() (string, error) {
 	var str string
 	// args
@@ -817,11 +828,12 @@ func (e *Element) Text() (string, error) {
 
 // SCDOM_RESULT  SciterSetElementText(HELEMENT he, LPCWSTR utf16, UINT length)
 
-//Set inner text of the element from LPCWSTR buffer (utf16 words).
-//   \param[in] he \b #HELEMENT
-//   \param[in] utf16words \b pointer, UTF16 encoded plain text
-//   \param[in] length \b UINT, number of words in utf16words sequence
-//   \return \b #SCDOM_RESULT SCAPI
+// Set inner text of the element from LPCWSTR buffer (utf16 words).
+//
+//	\param[in] he \b #HELEMENT
+//	\param[in] utf16words \b pointer, UTF16 encoded plain text
+//	\param[in] length \b UINT, number of words in utf16words sequence
+//	\return \b #SCDOM_RESULT SCAPI
 func (e *Element) SetText(text string) error {
 	// args
 	u16, err := Utf16FromString(text)
@@ -837,11 +849,12 @@ func (e *Element) SetText(text string) error {
 
 // SCDOM_RESULT  SciterGetAttributeCount(HELEMENT he, LPUINT p_count) ;//{ return SAPI()->SciterGetAttributeCount(he, p_count); }
 
-//Get number of element's attributes.
-//   \param[in] he \b #HELEMENT
-//   \param[out] p_count \b LPUINT, variable to receive number of element
-//   attributes.
-//   \return \b #SCDOM_RESULT SCAPI
+// Get number of element's attributes.
+//
+//	\param[in] he \b #HELEMENT
+//	\param[out] p_count \b LPUINT, variable to receive number of element
+//	attributes.
+//	\return \b #SCDOM_RESULT SCAPI
 func (e *Element) AttrCount() (int, error) {
 	var count C.UINT
 	// cgo call
@@ -863,14 +876,15 @@ func (e *Element) NthAttrName(n int) (name string, err error) {
 
 // SCDOM_RESULT  SciterGetNthAttributeValueCB(HELEMENT he, UINT n, LPCWSTR_RECEIVER* rcv, LPVOID rcv_param) ;//{ return SAPI()->SciterGetNthAttributeValueCB(he, n, rcv, rcv_param); }
 
-//Get value of any element's attribute by attribute's number.
-//  \param[in] he \b #HELEMENT
-//  \param[in] n \b UINT, number of desired attribute
-//  \param[out] p_name \b LPCSTR*, will be set to address of the string
-//  containing attribute name
-//  \param[out] p_value \b LPCWSTR*, will be set to address of the string
-//  containing attribute value
-//  \return \b #SCDOM_RESULT SCAPI
+// Get value of any element's attribute by attribute's number.
+//
+//	\param[in] he \b #HELEMENT
+//	\param[in] n \b UINT, number of desired attribute
+//	\param[out] p_name \b LPCSTR*, will be set to address of the string
+//	containing attribute name
+//	\param[out] p_value \b LPCWSTR*, will be set to address of the string
+//	containing attribute value
+//	\return \b #SCDOM_RESULT SCAPI
 func (e *Element) NthAttr(n int) (value string, err error) {
 	// args
 	cn := C.UINT(n)
@@ -883,12 +897,13 @@ func (e *Element) NthAttr(n int) (value string, err error) {
 
 // SCDOM_RESULT  SciterGetAttributeByNameCB(HELEMENT he, LPCSTR name, LPCWSTR_RECEIVER* rcv, LPVOID rcv_param) ;//{ return SAPI()->SciterGetAttributeByNameCB(he,name,rcv,rcv_param); }
 
-//Get value of any element's attribute by name.
-//  \param[in] he \b #HELEMENT
-//  \param[in] name \b LPCSTR, attribute name
-//  \param[out] p_value \b LPCWSTR*, will be set to address of the string
-//  containing attribute value
-//  \return \b #SCDOM_RESULT SCAPI
+// Get value of any element's attribute by name.
+//
+//	\param[in] he \b #HELEMENT
+//	\param[in] name \b LPCSTR, attribute name
+//	\param[out] p_value \b LPCWSTR*, will be set to address of the string
+//	containing attribute value
+//	\return \b #SCDOM_RESULT SCAPI
 func (e *Element) Attr(name string) (string, error) {
 	var str string
 	// args
@@ -903,11 +918,12 @@ func (e *Element) Attr(name string) (string, error) {
 
 // SCDOM_RESULT  SciterSetAttributeByName(HELEMENT he, LPCSTR name, LPCWSTR value) ;//{ return SAPI()->SciterSetAttributeByName(he,name,value); }
 
-//Set attribute's value.
-//  \param[in] he \b #HELEMENT
-//  \param[in] name \b LPCSTR, attribute name
-//  \param[in] value \b LPCWSTR, new attribute value or 0 if you want to remove attribute.
-//  \return \b #SCDOM_RESULT SCAPI
+// Set attribute's value.
+//
+//	\param[in] he \b #HELEMENT
+//	\param[in] name \b LPCSTR, attribute name
+//	\param[in] value \b LPCWSTR, new attribute value or 0 if you want to remove attribute.
+//	\return \b #SCDOM_RESULT SCAPI
 func (e *Element) SetAttr(name, val string) error {
 	// args
 	cname := C.CString(name)
@@ -920,20 +936,22 @@ func (e *Element) SetAttr(name, val string) error {
 
 // SCDOM_RESULT  SciterClearAttributes(HELEMENT he)
 
-//Remove all attributes from the element.
-//  \param[in] he \b #HELEMENT
-//  \return \b #SCDOM_RESULT SCAPI
+// Remove all attributes from the element.
+//
+//	\param[in] he \b #HELEMENT
+//	\return \b #SCDOM_RESULT SCAPI
 func (e *Element) ClearAttr() error {
 	return wrapDomResult(C.SciterClearAttributes(e.handle), "SciterClearAttributes")
 }
 
 // SCDOM_RESULT  SciterGetElementIndex(HELEMENT he, LPUINT p_index)
 
-//Get element index.
-//  \param[in] he \b #HELEMENT
-//  \param[out] p_index \b LPUINT, variable to receive number of the element
-//  among parent element's subelements.
-//  \return \b #SCDOM_RESULT SCAPI
+// Get element index.
+//
+//	\param[in] he \b #HELEMENT
+//	\param[out] p_index \b LPUINT, variable to receive number of the element
+//	among parent element's subelements.
+//	\return \b #SCDOM_RESULT SCAPI
 func (e *Element) Index() (idx int, err error) {
 	// args
 	var cidx C.UINT
@@ -959,15 +977,16 @@ func (e *Element) Type() (string, error) {
 
 // SCDOM_RESULT  SciterGetStyleAttributeCB(HELEMENT he, LPCSTR name, LPCWSTR_RECEIVER* rcv, LPVOID rcv_param) ;//{ return SAPI()->SciterGetStyleAttributeCB(he,name,rcv,rcv_param); }
 
-//Get element's style attribute.
-//  \param[in] he \b #HELEMENT
-//  \param[in] name \b LPCSTR, name of the style attribute
-//  \param[in] rcv \b pointer to the function receiving UTF16 encoded plain text
-//  \param[in] rcv_param \b param passed that passed to LPCWSTR_RECEIVER "as is"
+// Get element's style attribute.
 //
-//  Style attributes are those that are set using css. E.g. "font-face: arial" or "display: block".
+//	\param[in] he \b #HELEMENT
+//	\param[in] name \b LPCSTR, name of the style attribute
+//	\param[in] rcv \b pointer to the function receiving UTF16 encoded plain text
+//	\param[in] rcv_param \b param passed that passed to LPCWSTR_RECEIVER "as is"
 //
-//  \sa #SciterSetStyleAttribute()
+//	Style attributes are those that are set using css. E.g. "font-face: arial" or "display: block".
+//
+//	\sa #SciterSetStyleAttribute()
 func (e *Element) Style(name string) (string, error) {
 	var str string
 	// args
@@ -1008,9 +1027,10 @@ func (e *Element) ScrollToView(flag SCITER_SCROLL_FLAGS) error {
 // SCDOM_RESULT  SciterUpdateElement(HELEMENT he, BOOL andForceRender)
 
 // Apply changes and refresh element area in its window.
-//   \param[in] he \b #HELEMENT
-//   \param[in] andForceRender \b BOOL, TRUE to force UpdateWindow() call.
-//   \return \b #SCDOM_RESULT SCAPI
+//
+//	\param[in] he \b #HELEMENT
+//	\param[in] andForceRender \b BOOL, TRUE to force UpdateWindow() call.
+//	\return \b #SCDOM_RESULT SCAPI
 func (e *Element) Update(forceRender bool) error {
 	// args
 	var cforceRender C.SBOOL = C.FALSE
@@ -1025,12 +1045,13 @@ func (e *Element) Update(forceRender bool) error {
 
 // SCDOM_RESULT  SciterSetCapture(HELEMENT he)
 
-//Set the mouse capture to the specified element.
-//  \param[in] he \b #HELEMENT
-//  \return \b #SCDOM_RESULT SCAPI
+// Set the mouse capture to the specified element.
 //
-//  After call to this function all mouse events will be targeted to the element.
-//  To remove mouse capture call ReleaseCapture() function.
+//	\param[in] he \b #HELEMENT
+//	\return \b #SCDOM_RESULT SCAPI
+//
+//	After call to this function all mouse events will be targeted to the element.
+//	To remove mouse capture call ReleaseCapture() function.
 func (e *Element) Capture() error {
 	return wrapDomResult(C.SciterSetCapture(e.handle), "SciterSetCapture")
 }
@@ -1050,7 +1071,7 @@ func (e *Element) GetHwnd(rootWindow bool) (hwnd C.HWINDOW, err error) {
 		crootWindow = C.TRUE
 	}
 	// cgo call
-	r := C.SciterGetElementHwnd(e.handle, (C.HWINDOW_PTR)(unsafe.Pointer(&hwnd)), crootWindow)
+	r := C.SciterGetElementHwnd(e.handle, (*C.HWINDOW)(unsafe.Pointer(&hwnd)), crootWindow)
 	err = wrapDomResult(r, "SciterGetElementHwnd")
 	return
 }
@@ -1058,15 +1079,16 @@ func (e *Element) GetHwnd(rootWindow bool) (hwnd C.HWINDOW, err error) {
 // SCDOM_RESULT  SciterCombineURL(HELEMENT he, LPWSTR szUrlBuffer, UINT UrlBufferSize)
 
 // Combine given URL with URL of the document element belongs to.
-//   \param[in] he \b #HELEMENT
-//   \param[in, out] szUrlBuffer \b LPWSTR, at input this buffer contains
-//   zero-terminated URL to be combined, after function call it contains
-//   zero-terminated combined URL
-//   \param[in] UrlBufferSize \b UINT, size of the buffer pointed by
-//   \c szUrlBuffer
-//   \return \b #SCDOM_RESULT SCAPI
 //
-//   This function is used for resolving relative references.
+//	\param[in] he \b #HELEMENT
+//	\param[in, out] szUrlBuffer \b LPWSTR, at input this buffer contains
+//	zero-terminated URL to be combined, after function call it contains
+//	zero-terminated combined URL
+//	\param[in] UrlBufferSize \b UINT, size of the buffer pointed by
+//	\c szUrlBuffer
+//	\return \b #SCDOM_RESULT SCAPI
+//
+//	This function is used for resolving relative references.
 func (e *Element) CombineURL(url string) (combinedUrl string, err error) {
 	var buf []uint16
 	buf, err = Utf16FromString(url)
@@ -1212,15 +1234,17 @@ func (s *Sciter) GetElementByUID(uid uint) (*Element, error) {
 
 // SCDOM_RESULT  SciterShowPopup(HELEMENT hePopup, HELEMENT heAnchor, UINT placement)
 
-//Shows block element (DIV) in popup window.
+// Shows block element (DIV) in popup window.
 // \param[in] hePopup \b HELEMENT, element to show as popup
 // \param[in] heAnchor \b HELEMENT, anchor element - hePopup will be shown near this element
 // \param[in] placement \b UINT, values:
-//     2 - popup element below of anchor
-//     8 - popup element above of anchor
-//     4 - popup element on left side of anchor
-//     6 - popup element on right side of anchor
-//     ( see numpad on keyboard to get an idea of the numbers)
+//
+//	2 - popup element below of anchor
+//	8 - popup element above of anchor
+//	4 - popup element on left side of anchor
+//	6 - popup element on right side of anchor
+//	( see numpad on keyboard to get an idea of the numbers)
+//
 // \return \b #SCDOM_RESULT SCAPI
 func (e *Element) ShowPopup(eAnchor *Element, placement PopupPlacement) error {
 	// args
@@ -1233,14 +1257,15 @@ func (e *Element) ShowPopup(eAnchor *Element, placement PopupPlacement) error {
 // SCDOM_RESULT  SciterShowPopupAt(HELEMENT hePopup, POINT pos, BOOL animate)
 
 // Shows block element (DIV) in popup window at given position.
-//  \param[in] hePopup \b HELEMENT, element to show as popup
-//  \param[in] pos \b POINT, popup element position, relative to origin of Sciter window.
-//  \param[in] placement \b UINT, values:
-//      2 - popup element below of anchor
-//      8 - popup element above of anchor
-//      4 - popup element on left side of anchor
-//      6 - popup element on right side of anchor
-//      ( see numpad on keyboard to get an idea of the numbers)
+//
+//	\param[in] hePopup \b HELEMENT, element to show as popup
+//	\param[in] pos \b POINT, popup element position, relative to origin of Sciter window.
+//	\param[in] placement \b UINT, values:
+//	    2 - popup element below of anchor
+//	    8 - popup element above of anchor
+//	    4 - popup element on left side of anchor
+//	    6 - popup element on right side of anchor
+//	    ( see numpad on keyboard to get an idea of the numbers)
 func (e *Element) ShowPopupAt(pos Point, placement uint) error {
 	// args
 	var cpos C.POINT = *(*C.POINT)(unsafe.Pointer(&pos))
@@ -1285,10 +1310,11 @@ func (e *Element) SetState(bitsToSet, bitsToClear ElementState, updateView bool)
 // SCDOM_RESULT  SciterCreateElement( LPCSTR tagname, LPCWSTR textOrNull, /*out*/ HELEMENT *phe )
 
 // Create new element, the element is disconnected initially from the DOM.
-//     Element created with ref_count = 1 thus you \b must call Sciter_UnuseElement on returned handler.
-//  \param[in] tagname \b LPCSTR, html tag of the element e.g. "div", "option", etc.
-//  \param[in] textOrNull \b LPCWSTR, initial text of the element or NULL. text here is a plain text - method does no parsing.
-//  \param[out ] phe \b #HELEMENT*, variable to receive handle of the element
+//
+//	   Element created with ref_count = 1 thus you \b must call Sciter_UnuseElement on returned handler.
+//	\param[in] tagname \b LPCSTR, html tag of the element e.g. "div", "option", etc.
+//	\param[in] textOrNull \b LPCWSTR, initial text of the element or NULL. text here is a plain text - method does no parsing.
+//	\param[out ] phe \b #HELEMENT*, variable to receive handle of the element
 func CreateElement(tagname, textOrNull string) (*Element, error) {
 	// args
 	var he C.HELEMENT
@@ -1302,10 +1328,11 @@ func CreateElement(tagname, textOrNull string) (*Element, error) {
 // SCDOM_RESULT  SciterCloneElement( HELEMENT he, /*out*/ HELEMENT *phe )
 
 // Create new element as copy of existing element, new element is a full (deep) copy of the element and
-//     is disconnected initially from the DOM.
-//     Element created with ref_count = 1 thus you \b must call Sciter_UnuseElement on returned handler.
-//  \param[in] he \b #HELEMENT, source element.
-//  \param[out ] phe \b #HELEMENT*, variable to receive handle of the new element.
+//
+//	   is disconnected initially from the DOM.
+//	   Element created with ref_count = 1 thus you \b must call Sciter_UnuseElement on returned handler.
+//	\param[in] he \b #HELEMENT, source element.
+//	\param[out ] phe \b #HELEMENT*, variable to receive handle of the new element.
 func (e *Element) Clone() (*Element, error) {
 	// args
 	var he C.HELEMENT
@@ -1317,8 +1344,9 @@ func (e *Element) Clone() (*Element, error) {
 // SCDOM_RESULT  SciterInsertElement( HELEMENT he, HELEMENT hparent, UINT index )
 //
 // Insert element at the index position of parent.
-//     It is not an error to insert element which already has parent - it will be disconnected first, but
-//     you need to update elements parent in this case.
+//
+//	It is not an error to insert element which already has parent - it will be disconnected first, but
+//	you need to update elements parent in this case.
 func (e *Element) Insert(el *Element, index int) error {
 	// args
 	cindex := C.UINT(index)
@@ -1339,7 +1367,8 @@ func (e *Element) Append(el *Element) error {
 // SCDOM_RESULT  SciterDetachElement( HELEMENT he )
 
 // Take element out of its container (and DOM tree).
-//    Element will be destroyed when its reference counter will become zero
+//
+//	Element will be destroyed when its reference counter will become zero
 func (e *Element) Detach() error {
 	// cgo call
 	r := C.SciterDetachElement(e.handle)
@@ -1349,7 +1378,8 @@ func (e *Element) Detach() error {
 // SCDOM_RESULT  SciterDeleteElement(HELEMENT he)
 
 // Take element out of its container (and DOM tree).
-//   Element will be destroyed when its reference counter will become zero
+//
+//	Element will be destroyed when its reference counter will become zero
 func (e *Element) Delete() error {
 	// cgo cal
 	r := C.SciterDeleteElement(e.handle)
@@ -1366,8 +1396,9 @@ func (e *Element) Clear() error {
 // SCDOM_RESULT  SciterSetTimer( HELEMENT he, UINT milliseconds, UINT_PTR timer_id )
 
 // Start Timer for the element.
-//   Element will receive on_timer event
-//   To stop timer call SciterSetTimer( he, 0 );
+//
+//	Element will receive on_timer event
+//	To stop timer call SciterSetTimer( he, 0 );
 func (e *Element) SetTimer(milliseconds int) error {
 	// args
 	cmilliseconds := C.UINT(milliseconds)
@@ -1669,13 +1700,14 @@ func (s *Sciter) DetachWindowEventHandler(handler *EventHandler) error {
 // SCDOM_RESULT  SciterRequestElementData( HELEMENT he, LPCWSTR url, UINT dataType, HELEMENT initiator ) ;//{ return SAPI()->SciterRequestElementData(he,url,dataType,initiator ); }
 
 // SciterRequestElementData  - request data download for the element. as jQuery.load :)
-//  \param[in] he \b HELEMENT, element to deleiver data to.
-//  \param[in] url \b LPCWSTR, url to download data from.
-//  \param[in] dataType \b UINT, data type, see SciterResourceType.
-//  \param[in] hInitiator \b HELEMENT, element - initiator, can be NULL.
 //
-//  event handler on the he element (if any) will be notified
-//  when data will be ready by receiving HANDLE_DATA_DELIVERY event.
+//	\param[in] he \b HELEMENT, element to deleiver data to.
+//	\param[in] url \b LPCWSTR, url to download data from.
+//	\param[in] dataType \b UINT, data type, see SciterResourceType.
+//	\param[in] hInitiator \b HELEMENT, element - initiator, can be NULL.
+//
+//	event handler on the he element (if any) will be notified
+//	when data will be ready by receiving HANDLE_DATA_DELIVERY event.
 func (e *Element) Load(url string, dataType SciterResourceType) error {
 	// args
 	curl := C.LPCWSTR(StringToWcharPtr(url))
@@ -1690,8 +1722,8 @@ func (e *Element) Load(url string, dataType SciterResourceType) error {
 
 // SciterSendRequest - send GET or POST request for the element
 //
-//  event handler on the 'he' element (if any) will be notified
-//  when data will be ready by receiving HANDLE_DATA_DELIVERY event.
+//	event handler on the 'he' element (if any) will be notified
+//	when data will be ready by receiving HANDLE_DATA_DELIVERY event.
 func (e *Element) HttpRequest(url string, dataType SciterResourceType, requestType RequestType, params ...RequestParam) error {
 	// args
 	curl := C.LPCWSTR(StringToWcharPtr(url))
@@ -1721,9 +1753,10 @@ func (e *Element) HttpRequest(url string, dataType SciterResourceType, requestTy
 // SCDOM_RESULT  SciterIsElementVisible( HELEMENT he, BOOL* pVisible)
 
 // SciterIsElementVisible - deep visibility, determines if element visible - has no visiblity:hidden and no display:none defined
-//     for itself or for any its parents.
-//  \param[in] he \b HELEMENT, element.
-//  \param[out] pVisible \b LPBOOL, visibility state.
+//
+//	   for itself or for any its parents.
+//	\param[in] he \b HELEMENT, element.
+//	\param[out] pVisible \b LPBOOL, visibility state.
 func (e *Element) IsVisible() bool {
 	// args
 	var v C.SBOOL
@@ -1738,7 +1771,9 @@ func (e *Element) IsVisible() bool {
 // SCDOM_RESULT  SciterIsElementEnabled( HELEMENT he, BOOL* pEnabled )
 
 // SciterIsElementEnabled - deep enable state, determines if element enabled - is not disabled by itself or no one
-//    of its parents is disabled.
+//
+//	of its parents is disabled.
+//
 // \param[in] he \b HELEMENT, element.
 // \param[out] pEnabled \b LPBOOL, enabled state.
 func (e *Element) IsEnabled() bool {
@@ -1789,9 +1824,10 @@ func (e *Element) SortChildren(comparator func(*Element, *Element) int) error {
 // SCDOM_RESULT  SciterSwapElements( HELEMENT he1, HELEMENT he2 ) ;//{ return SAPI()->SciterSwapElements( he1,he2 ); }
 
 // SciterSwapElements - swap element positions.
-//  Function changes "insertion points" of two elements. So it swops indexes and parents of two elements.
-//  \param[in] he1 \b HELEMENT, first element.
-//  \param[in] he2 \b HELEMENT, second element.
+//
+//	Function changes "insertion points" of two elements. So it swops indexes and parents of two elements.
+//	\param[in] he1 \b HELEMENT, first element.
+//	\param[in] he2 \b HELEMENT, second element.
 func (e *Element) Swap(t *Element) error {
 	return wrapDomResult(C.SciterSwapElements(e.handle, t.handle), "SciterSwapElements")
 }
@@ -1802,10 +1838,13 @@ func (e *Element) Swap(t *Element) error {
 
 // call scripting function defined on global level
 // Example, script:
-//   function foo() {...}
+//
+//	function foo() {...}
+//
 // Native code:
-//   dom::element root = ... get root element of main document or some frame inside it
-//   root.call_function("foo"); // call the function
+//
+//	dom::element root = ... get root element of main document or some frame inside it
+//	root.call_function("foo"); // call the function
 func (e *Element) CallFunction(functionName string, args ...*Value) (retval *Value, err error) {
 	retval = NewValue()
 	argc := len(args)
@@ -1832,11 +1871,14 @@ func (e *Element) CallFunction(functionName string, args ...*Value) (retval *Val
 
 // call scripting method attached to the element (directly or through of scripting behavior)
 // Example, script:
-//   var elem = ...
-//   elem.foo = function() {...}
+//
+//	var elem = ...
+//	elem.foo = function() {...}
+//
 // Native code:
-//   dom::element elem = ...
-//   elem.call_method("foo");
+//
+//	dom::element elem = ...
+//	elem.call_method("foo");
 func (e *Element) CallMethod(methodName string, args ...*Value) (retval *Value, err error) {
 	retval = NewValue()
 	argc := len(args)
@@ -1867,10 +1909,11 @@ func (e *Element) CallMethod(methodName string, args ...*Value) (retval *Value, 
 // SCDOM_RESULT  SciterGetValue( HELEMENT he, VALUE* pval ) ;//{ return SAPI()->SciterGetValue( he,pval ); }
 
 // SciterGetValue - get value of the element. 'value' is value of correspondent behavior attached to the element or its text.
-//  \param[in] he \b HELEMENT, element which value will be retrieved.
-//  \param[out] pval \b VALUE*, pointer to VALUE that will get elements value.
-//   ATTN: if you are not using json::value wrapper then you shall call ValueClear aginst the returned value
-//         otherwise memory will leak.
+//
+//	\param[in] he \b HELEMENT, element which value will be retrieved.
+//	\param[out] pval \b VALUE*, pointer to VALUE that will get elements value.
+//	 ATTN: if you are not using json::value wrapper then you shall call ValueClear aginst the returned value
+//	       otherwise memory will leak.
 func (e *Element) GetValue() (*Value, error) {
 	// args
 	v := NewValue()
@@ -1883,8 +1926,9 @@ func (e *Element) GetValue() (*Value, error) {
 // SCDOM_RESULT  SciterSetValue( HELEMENT he, const VALUE* pval ) ;//{ return SAPI()->SciterSetValue( he, pval ); }
 
 // SciterSetValue - set value of the element.
-//  \param[in] he \b HELEMENT, element which value will be changed.
-//  \param[in] pval \b VALUE*, pointer to the VALUE to set.
+//
+//	\param[in] he \b HELEMENT, element which value will be changed.
+//	\param[in] pval \b VALUE*, pointer to the VALUE to set.
 func (e *Element) SetValue(v *Value) error {
 	// args
 	cv := (*C.VALUE)(unsafe.Pointer(v))
@@ -1920,11 +1964,12 @@ func (e *Element) SetValue(v *Value) error {
 // DLLEXPORT HVM    SciterGetVM( HWINDOW hwnd )  ;//{ return SAPI()->SciterGetVM(hwnd); }
 
 // typedef struct
-// {
-//   UINT   t;
-//   UINT   u;
-//   UINT64 d;
-// } VALUE;
+//
+//	{
+//	  UINT   t;
+//	  UINT   u;
+//	  UINT64 d;
+//	} VALUE;
 type Value C.VALUE
 
 // type Value struct {
@@ -1950,7 +1995,7 @@ func (pdst *Value) clear() error {
 
 // UINT  ValueCompare ( const VALUE* pval1, const VALUE* pval2 ) ;//{ return SAPI()->ValueCompare(pval1,pval2); }
 
-//  ValueCompare - compares two values, returns HV_OK_TRUE if val1 == val2.
+// ValueCompare - compares two values, returns HV_OK_TRUE if val1 == val2.
 func (pdst *Value) Compare(val *Value) error {
 	pv := (*C.VALUE)(unsafe.Pointer(pdst))
 	v := (*C.VALUE)(unsafe.Pointer(val))
@@ -2197,9 +2242,10 @@ func (pdst *Value) Index(n int) *Value {
 // UINT  ValueNthElementValueSet ( VALUE* pval, INT n, const VALUE* pval_to_set) ;//{ return SAPI()->ValueNthElementValueSet ( pval,n,pval_to_set); }
 
 // ValueNthElementValueSet - sets value of sub-element at index n for:
-//  - T_ARRAY - nth element of the array;
-//  - T_MAP - value of nth key/value pair in the map;
-//  - T_FUNCTION - value of nth argument of the function;
+//   - T_ARRAY - nth element of the array;
+//   - T_MAP - value of nth key/value pair in the map;
+//   - T_FUNCTION - value of nth argument of the function;
+//
 // If the VALUE is not of one of types above then it makes it of type T_ARRAY with
 // single element - 'val_to_set'.
 func (pdst *Value) SetIndex(idx int, val interface{}) error {
@@ -2260,15 +2306,16 @@ func (pdst *Value) EnumerateKeyValue(fn KeyValueCallback) error {
 
 // UINT  ValueSetValueToKey ( VALUE* pval, const VALUE* pkey, const VALUE* pval_to_set) ;//{ return SAPI()->ValueSetValueToKey ( pval, pkey, pval_to_set); }
 
-//  ValueSetValueToKey - sets value of sub-element by key:
+// ValueSetValueToKey - sets value of sub-element by key:
 //
-//    - T_MAP - value of key/value pair with the key;
-//    - T_FUNCTION - value of argument with the name key;
-//    - T_OBJECT (tiscript) - value of property of the object
-//  If the VALUE is not of one of types above then it makes it of type T_MAP with
-//  single pair - 'key'/'val_to_set'.
+//   - T_MAP - value of key/value pair with the key;
+//   - T_FUNCTION - value of argument with the name key;
+//   - T_OBJECT (tiscript) - value of property of the object
 //
-//  key usually is a value of type T_STRING
+// If the VALUE is not of one of types above then it makes it of type T_MAP with
+// single pair - 'key'/'val_to_set'.
+//
+// key usually is a value of type T_STRING
 func (pdst *Value) Set(key string, val interface{}) error {
 	// args
 	cpdst := (*C.VALUE)(unsafe.Pointer(pdst))
@@ -2285,6 +2332,7 @@ func (pdst *Value) Set(key string, val interface{}) error {
 //   - T_MAP - value of key/value pair with the key;
 //   - T_FUNCTION - value of argument with the name key;
 //   - T_OBJECT (tiscript) - value of property of the object
+//
 // Otherwise *pretval will have T_UNDEFINED value.
 func (pdst *Value) Get(key string) (val *Value) {
 	val = NewValue()
@@ -2318,11 +2366,13 @@ func (pdst *Value) ConvertToString(how ValueStringConvertType) error {
 // UINT  ValueFromString ( VALUE* pval, LPCWSTR str, UINT strLength, UINT how ) ;//{ return SAPI()->ValueFromString ( pval, str,strLength,how ); }
 
 // ValueFromString - parses string into value:
-//  - CVT_SIMPLE - parse/emit terminal values (T_INT, T_FLOAT, T_LENGTH, T_STRING), "guess" non-strict parsing
-//  - CVT_JSON_LITERAL - parse/emit value using JSON literal rules: {}, [], "string", true, false, null
-//  - CVT_JSON_MAP - parse/emit MAP value without enclosing '{' and '}' brackets.
+//   - CVT_SIMPLE - parse/emit terminal values (T_INT, T_FLOAT, T_LENGTH, T_STRING), "guess" non-strict parsing
+//   - CVT_JSON_LITERAL - parse/emit value using JSON literal rules: {}, [], "string", true, false, null
+//   - CVT_JSON_MAP - parse/emit MAP value without enclosing '{' and '}' brackets.
+//
 // Returns:
-//   Number of non-parsed characters in case of errors. Thus if string was parsed in full it returns 0 (success)
+//
+//	Number of non-parsed characters in case of errors. Thus if string was parsed in full it returns 0 (success)
 func (pdst *Value) ConvertFromString(str string, how ValueStringConvertType) error {
 	cval := (*C.VALUE)(unsafe.Pointer(pdst))
 	// args
@@ -2339,16 +2389,18 @@ func (pdst *Value) ConvertFromString(str string, how ValueStringConvertType) err
 
 // UINT  ValueInvoke ( VALUE* pval, VALUE* pthis, UINT argc, const VALUE* argv, VALUE* pretval, LPCWSTR url) ;//{ return SAPI()->ValueInvoke ( pval, pthis, argc, argv, pretval, url); }
 
-//ValueInvoke - function invocation (Sciter/TIScript). Usually as callbacks for asynchronous tasks
-//  - VALUE* pval is a value of type T_OBJECT/UT_OBJECT_FUNCTION
-//  - VALUE* self - object that will be known as 'this' inside that function.
-//                   'self' here is what will be known as 'this' inside the function,
-//                   can be undefined for invocations of global functions
-//  - UINT argc, const VALUE* argv - vector of arguments to pass to the function.
-//  - VALUE* pretval - parse/emit MAP value without enclosing '{' and '}' brackets.
-//  - LPCWSTR url - url or name of the script - used for error reporting in the script.
-//Returns:
-//  HV_OK, HV_BAD_PARAMETER or HV_INCOMPATIBLE_TYPE
+// ValueInvoke - function invocation (Sciter/TIScript). Usually as callbacks for asynchronous tasks
+//   - VALUE* pval is a value of type T_OBJECT/UT_OBJECT_FUNCTION
+//   - VALUE* self - object that will be known as 'this' inside that function.
+//     'self' here is what will be known as 'this' inside the function,
+//     can be undefined for invocations of global functions
+//   - UINT argc, const VALUE* argv - vector of arguments to pass to the function.
+//   - VALUE* pretval - parse/emit MAP value without enclosing '{' and '}' brackets.
+//   - LPCWSTR url - url or name of the script - used for error reporting in the script.
+//
+// Returns:
+//
+//	HV_OK, HV_BAD_PARAMETER or HV_INCOMPATIBLE_TYPE
 func (v *Value) Invoke(self *Value, nameOrUrl string, args ...*Value) (retval *Value, err error) {
 	retval = NewValue()
 	argc := len(args)
@@ -2411,13 +2463,15 @@ var (
 
 // UINT  ValueNativeFunctorSet (VALUE* pval, NATIVE_FUNCTOR_INVOKE*  pinvoke, NATIVE_FUNCTOR_RELEASE* prelease, VOID* tag )
 
-//ValueNativeFunctorSet - set reference to native function
-//  - VALUE* pval - value to be initialized
-//  - NATIVE_FUNCTOR_INVOKE* pinvoke - reference to native functor implementation.
-//  - NATIVE_FUNCTOR_RELEASE* prelease - reference to native functor dtor implementation.
-//  - VOID* tag - optional tag, passed as it is to pinvoke and prelease
-//Returns:
-//  HV_OK, HV_BAD_PARAMETER
+// ValueNativeFunctorSet - set reference to native function
+//   - VALUE* pval - value to be initialized
+//   - NATIVE_FUNCTOR_INVOKE* pinvoke - reference to native functor implementation.
+//   - NATIVE_FUNCTOR_RELEASE* prelease - reference to native functor dtor implementation.
+//   - VOID* tag - optional tag, passed as it is to pinvoke and prelease
+//
+// Returns:
+//
+//	HV_OK, HV_BAD_PARAMETER
 func (pdst *Value) SetNativeFunctor(nf NativeFunctor) error {
 	tag := unsafe.Pointer(&nf)
 	functorMap[tag] = nf

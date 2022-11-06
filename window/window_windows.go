@@ -9,8 +9,9 @@ import (
 	"syscall"
 	"unsafe"
 
+	"github.com/com1com4/go-sciter-js"
+
 	"github.com/lxn/win"
-	"github.com/sciter-sdk/go-sciter"
 )
 
 func New(creationFlags sciter.WindowCreationFlag, rect *sciter.Rect) (*Window, error) {

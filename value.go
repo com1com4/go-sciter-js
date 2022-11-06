@@ -38,8 +38,10 @@ func valuePanic(result uint, message ...interface{}) {
 }
 
 // Only supported basic types: int/bool/string/float/NativeFunctor/Value
-//	 for creating array: a := NewValue(); a.SetIndex(0, 123)|a.Append(123)
-//	 for creating map/object: obj := NewValue(); obj.Set("key", "value")
+//
+//	for creating array: a := NewValue(); a.SetIndex(0, 123)|a.Append(123)
+//	for creating map/object: obj := NewValue(); obj.Set("key", "value")
+//
 // The creating process would call ValueInit/VlaueClear automatically
 func NewValue(val ...interface{}) *Value {
 	v := new(Value)
@@ -137,9 +139,9 @@ func (v *Value) IsString() bool {
 }
 
 // bool is_symbol() const { return t == T_STRING && u == UT_SYMBOL; }
-func (v *Value) IsSymbol() bool {
-	return v.t == T_STRING && v.t == UT_SYMBOL
-}
+// func (v *Value) IsSymbol() bool {
+// 	return v.t == T_STRING && v.t == UT_SYMBOL
+// }
 
 // bool is_date() const { return t == T_DATE; }
 func (v *Value) IsDate() bool {
@@ -175,6 +177,7 @@ func (v *Value) IsColor() bool {
 func (v *Value) IsDuration() bool {
 	return v.t == T_DURATION
 }
+
 // bool is_angle() const { return t == T_ANGLE; }
 func (v *Value) IsAngle() bool {
 	return v.t == T_ANGLE

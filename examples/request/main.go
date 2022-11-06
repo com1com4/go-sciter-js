@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/sciter-sdk/go-sciter"
-	"github.com/sciter-sdk/go-sciter/window"
+	"github.com/com1com4/go-sciter-js"
+	"github.com/com1com4/go-sciter-js/window"
 )
 
 func main() {
@@ -47,7 +47,7 @@ func customOnLoadData(params *sciter.ScnLoadData) int {
 	uri, _ := rq.Url()
 	rqType, _ := rq.RequestType()
 	rqDataType, _ := rq.RequestedDataType()
-	if strings.HasPrefix(uri, "sync://") && rqType == sciter.RRT_GET && rqDataType == sciter.RT_DATA_IMAGE { // serve content synchronously
+	if strings.HasPrefix(uri, "sync://") && rqType == "GET" && rqDataType == sciter.RT_DATA_IMAGE { // serve content synchronously
 		path := uri[7:]
 		f, err := os.Open(path)
 		if err != nil {
@@ -58,7 +58,7 @@ func customOnLoadData(params *sciter.ScnLoadData) int {
 			return sciter.LOAD_DISCARD
 		}
 		rq.SetSucceeded(200, data)
-	} else if strings.HasPrefix(uri, "async://") && rqType == sciter.RRT_GET && rqDataType == sciter.RT_DATA_IMAGE { // serve content asynchronously
+	} else if strings.HasPrefix(uri, "async://") && rqType == "GET" && rqDataType == sciter.RT_DATA_IMAGE { // serve content asynchronously
 		go func() { // load content from a goroutine
 			path := uri[8:]
 			f, err := os.Open(path)
@@ -77,7 +77,7 @@ func customOnLoadData(params *sciter.ScnLoadData) int {
 
 		// let sciter know we intend to load the data later
 		return sciter.LOAD_DELAYED
-	} else if strings.HasPrefix(uri, "chunked://") && rqType == sciter.RRT_GET && rqDataType == sciter.RT_DATA_IMAGE { // serve content asynchronously in chunks
+	} else if strings.HasPrefix(uri, "chunked://") && rqType == "GET" && rqDataType == sciter.RT_DATA_IMAGE { // serve content asynchronously in chunks
 		go func() { // load content from a goroutine
 			path := uri[10:]
 			f, err := os.Open(path)

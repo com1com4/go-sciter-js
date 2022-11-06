@@ -81,17 +81,15 @@ inline  VOID    SCAPI SciterSetupDebugOutput ( HWINDOW hwndOrNull, LPVOID param,
 
       void printf( const char* fmt, ... )
       {
-        char buffer [ 2049 ];
+        char buffer [ 2049 ] = {0};
         va_list args;
         va_start ( args, fmt );
 #if _MSC_VER == 1400
-        int len = vsnprintf( buffer, sizeof(buffer), _TRUNCATE, fmt, args );
+        vsnprintf( buffer, sizeof(buffer), _TRUNCATE, fmt, args );
 #else
-        int len = vsnprintf( buffer, sizeof(buffer), fmt, args );
+        vsnprintf( buffer, sizeof(buffer), fmt, args );
 #endif
         va_end ( args );
-        buffer [ len ] = 0;
-        buffer [ 2048 ] = 0;
         print(buffer);
       }
 

@@ -9,19 +9,19 @@ import (
 	"unsafe"
 )
 
-// enum SCITER_CREATE_WINDOW_FLAGS {
-//    SW_CHILD      = (1 << 0), // child window only, if this flag is set all other flags ignored
-//    SW_TITLEBAR   = (1 << 1), // toplevel window, has titlebar
-//    SW_RESIZEABLE = (1 << 2), // has resizeable frame
-//    SW_TOOL       = (1 << 3), // is tool window
-//    SW_CONTROLS   = (1 << 4), // has minimize / maximize buttons
-//    SW_GLASSY     = (1 << 5), // glassy window ( DwmExtendFrameIntoClientArea on windows )
-//    SW_ALPHA      = (1 << 6), // transparent window ( e.g. WS_EX_LAYERED on Windows )
-//    SW_MAIN       = (1 << 7), // main window of the app, will terminate the app on close
-//    SW_POPUP      = (1 << 8), // the window is created as topmost window.
-//    SW_ENABLE_DEBUG = (1 << 9), // make this window inspector ready
-//    SW_OWNS_VM      = (1 << 10), // it has its own script VM
-// };
+//	enum SCITER_CREATE_WINDOW_FLAGS {
+//	   SW_CHILD      = (1 << 0), // child window only, if this flag is set all other flags ignored
+//	   SW_TITLEBAR   = (1 << 1), // toplevel window, has titlebar
+//	   SW_RESIZEABLE = (1 << 2), // has resizeable frame
+//	   SW_TOOL       = (1 << 3), // is tool window
+//	   SW_CONTROLS   = (1 << 4), // has minimize / maximize buttons
+//	   SW_GLASSY     = (1 << 5), // glassy window ( DwmExtendFrameIntoClientArea on windows )
+//	   SW_ALPHA      = (1 << 6), // transparent window ( e.g. WS_EX_LAYERED on Windows )
+//	   SW_MAIN       = (1 << 7), // main window of the app, will terminate the app on close
+//	   SW_POPUP      = (1 << 8), // the window is created as topmost window.
+//	   SW_ENABLE_DEBUG = (1 << 9), // make this window inspector ready
+//	   SW_OWNS_VM      = (1 << 10), // it has its own script VM
+//	};
 type WindowCreationFlag uint32
 
 const (
@@ -110,9 +110,11 @@ type KeyboardState uint32
 
 // enum KEYBOARD_STATES
 const (
-	CONTROL_KEY_PRESSED KeyboardState = 0x1
-	SHIFT_KEY_PRESSED   KeyboardState = 0x2
-	ALT_KEY_PRESSED     KeyboardState = 0x4
+	CONTROL_KEY_PRESSED     KeyboardState = 0x1
+	SHIFT_KEY_PRESSED       KeyboardState = 0x2
+	ALT_KEY_PRESSED         KeyboardState = 0x4
+	RIGHT_SHIFT_KEY_PRESSED KeyboardState = 0x8
+	CMD_KEY_PRESSED         KeyboardState = 0x10
 )
 
 // parameters of evtg == HANDLE_INITIALIZATION
@@ -151,10 +153,19 @@ const (
 	DRAG_LEAVE   // drag left one of current drop targets. target is the drop target element.
 	DRAG_REQUEST // drag src notification before drag start. To cancel - return true from handler.
 
+	MOUSE_TCLICK MouseEvent = 0xF // tripple click
+
+	//MOUSE_TOUCH_START MouseEvent = 0xFC // touch device pressed somehow
+	//MOUSE_TOUCH_END MouseEvent = 0xFD   // touch device depressed - clear, nothing on it
+
+	MOUSE_DRAG_REQUEST MouseEvent = 0xFE // mouse drag start detected event
+
 	MOUSE_CLICK MouseEvent = 0xFF // mouse click event
 
 	DRAGGING MouseEvent = 0x100 // This flag is 'ORed' with MOUSE_ENTER..MOUSE_DOWN codes if dragging operation is in effect.
 	// E.g. event DRAGGING | MOUSE_MOVE is sent to underlying DOM elements while dragging.
+
+	MOUSE_HIT_TEST MouseEvent = 0xFFE // sent to element, allows to handle elements with non-trivial shapes.
 )
 
 type CursorType uint32
@@ -192,8 +203,12 @@ type FocusEvent uint32
 
 // enum FOCUS_EVENTS
 const (
-	FOCUS_LOST FocusEvent = iota
-	FOCUS_GOT
+	FOCUS_OUT             FocusEvent = iota /**< container lost focus from any element inside it, target is an element that lost focus */
+	FOCUS_IN                                /**< container got focus on element inside it, target is an element that got focus */
+	FOCUS_GOT                               /**< target element got focus */
+	FOCUS_LOST                              /**< target element lost focus */
+	FOCUS_REQUEST                           /**< bubbling event/request, gets sent on child-parent chain to accept/reject focus to be set on the child (target) */
+	FOCUS_ADVANCE_REQUEST                   /**< bubbling event/request, gets sent on child-parent chain to advance focus */
 )
 
 type ScrollEvent uint32
@@ -210,18 +225,27 @@ const (
 	SCROLL_SLIDER_RELEASED
 	SCROLL_CORNER_PRESSED
 	SCROLL_CORNER_RELEASED
+	SCROLL_SLIDER_PRESSED
+
+	SCROLL_ANIMATION_START
+	SCROLL_ANIMATION_END
 )
 
 type GestureCmd uint32
 
 // enum GESTURE_CMD
 const (
-	GESTURE_REQUEST GestureCmd = iota // return true and fill flags if it will handle gestures.
-	GESTURE_ZOOM                      // The zoom gesture.
-	GESTURE_PAN                       // The pan gesture.
-	GESTURE_ROTATE                    // The rotation gesture.
-	GESTURE_TAP1                      // The tap gesture.
-	GESTURE_TAP2                      // The two-finger tap gesture.
+	GESTURE_START GestureCmd = iota
+	GESTURE_MOVE
+	GESTURE_END
+
+	// logical events
+	GESTURE_PAN    // The pan gesture.
+	GESTURE_ZOOM   // The zoom gesture.
+	GESTURE_ROTATE // The rotation gesture.
+	GESTURE_TAP1   // The tap gesture, a.k.a. click
+	GESTURE_TAP2   // The two-finger tap gesture, a.k.a. right-click
+	GESTURE_DOUBLE_TAP
 )
 
 type GestureState uint32
@@ -253,8 +277,10 @@ type DrawEvent uint32
 
 // enum DRAW_EVENTS
 const (
+	DRAW_BACKGROUND DrawEvent = 0
 	DRAW_CONTENT    DrawEvent = 1
 	DRAW_FOREGROUND DrawEvent = 2
+	DRAW_OUTLINE    DrawEvent = 3
 )
 
 // enum CONTENT_CHANGE_BITS {  // for CONTENT_CHANGED reason
@@ -273,7 +299,8 @@ const (
 	EDIT_VALUE_CHANGING      BehaviorEvent = 3 // before text change
 	EDIT_VALUE_CHANGED       BehaviorEvent = 4 // after text change
 	SELECT_SELECTION_CHANGED BehaviorEvent = 5 // selection in <select> changed
-	SELECT_STATE_CHANGED     BehaviorEvent = 6 // node in select expanded/collapsed heTarget is the node
+	SELECT_VALUE_CHANGED     BehaviorEvent = 6
+	SELECT_STATE_CHANGED     BehaviorEvent = SELECT_VALUE_CHANGED // node in select expanded/collapsed heTarget is the node
 
 	POPUP_REQUEST BehaviorEvent = 7 // request to show popup just received
 	//     here DOM of popup element can be modifed.
@@ -302,6 +329,8 @@ const (
 	CONTENT_CHANGED BehaviorEvent = 0x15 // content has been changed is posted to the element that gets content changed  reason is combination of CONTENT_CHANGE_BITS.
 	// target == NULL means the window got new document and this event is dispatched only to the window.
 
+	CLICK  BehaviorEvent = 0x16 // generic click
+	CHANGE BehaviorEvent = 0x17 // generic change
 	// "grey" event codes  - notfications from behaviors from this SDK
 	HYPERLINK_CLICK BehaviorEvent = 0x80 // hyperlink click
 
@@ -372,7 +401,15 @@ const (
 	//      call sciter::video_destination::render_frame(...) as soon as they are available
 	//      call sciter::video_destination::stop_streaming() to stop the rendering (a.k.a. end of movie reached)
 
-	FIRST_APPLICATION_EVENT_CODE = 0x100
+	VIDEO_FRAME_REQUEST BehaviorEvent = 0xD8 // animation step, a.k.a. animation frame
+
+	PAGINATION_STARTS BehaviorEvent = 0xE0 // behavior:pager starts pagination
+	PAGINATION_PAGE   BehaviorEvent = 0xE1 // behavior:pager paginated page no, reason -> page no
+	PAGINATION_ENDS   BehaviorEvent = 0xE2 // behavior:pager end pagination, reason -> total pages
+
+	CUSTOM BehaviorEvent = 0xF0 // event with custom name
+
+	FIRST_APPLICATION_EVENT_CODE BehaviorEvent = 0x100
 	// all custom event codes shall be greater
 	// than this number. All codes below this will be used
 	// solely by application - HTMLayout will not intrepret it
@@ -407,6 +444,7 @@ type BehaviorMethodIdentifier uint32
 // enum BEHAVIOR_METHOD_IDENTIFIERS
 const (
 	DO_CLICK BehaviorMethodIdentifier = iota
+	/* remnants of HTMLayout API, not used
 	GET_TEXT_VALUE
 	SET_TEXT_VALUE
 	// p - TEXT_VALUE_PARAMS
@@ -430,6 +468,7 @@ const (
 	TEXT_EDIT_GET_SELECTION_TEXT // p - TEXT_SELECTION_PARAMS
 	TEXT_EDIT_GET_SELECTION_HTML // p - TEXT_SELECTION_PARAMS
 	TEXT_EDIT_CHAR_POS_AT_XY     // p - TEXT_EDIT_CHAR_POS_AT_XY_PARAMS
+	*/
 
 	IS_EMPTY  BehaviorMethodIdentifier = 0xFC // p - IS_EMPTY_PARAMS // set VALUE_PARAMS::is_empty (false/true) reflects :empty state of the element.
 	GET_VALUE BehaviorMethodIdentifier = 0xFD // p - VALUE_PARAMS
@@ -480,9 +519,9 @@ const (
 	UT_PC     = 12 //picas (1 pica = 12 points).
 	UT_DIP    = 13
 	reserved3 = 14
-	UT_COLOR  = 15     // color in int
-	UT_URL    = 16     // url in string
-	UT_SYMBOL = 0xFFFF // for T_STRINGs designates symbol string ( so called NAME_TOKEN - CSS or JS identifier )
+	reserved4 = 15 // color in int
+	UT_URL    = 16 // url in string
+	// UT_SYMBOL = 0xFFFF // for T_STRINGs designates symbol string ( so called NAME_TOKEN - CSS or JS identifier )
 )
 
 // enum VALUE_UNIT_TYPE_DATE
@@ -557,16 +596,19 @@ type KeyParams struct {
 }
 
 type FocusParams struct {
-	Cmd          FocusEvent // FocusEvents
-	Target       C.HELEMENT
-	ByMouseClick int32 // boolean // true if focus is being set by mouse click
-	Cancel       int32 // boolean // in FOCUS_LOST phase setting this field to true will cancel transfer focus from old element to the new one.
+	Cmd    FocusEvent // FocusEvents
+	Target C.HELEMENT // target element, for #FOCUS_LOST it is a handle of new focus element
+	// and for #FOCUS_GOT it is a handle of old focus element, can be NULL
+	Cause  uint  // focus cause params or FOCUS_CMD_TYPE for FOCUS_ADVANCE_REQUEST
+	Cancel int32 // in #FOCUS_REQUEST and #FOCUS_LOST phase setting this field to true will cancel transfer focus from old element to the new one.
 }
 
 type DrawParams struct {
-	Cmd      DrawEvent // DrawEvents
-	Hdc      uintptr
-	Area     Rect
+	Cmd  DrawEvent // DrawEvents
+	Gfx  uintptr   // HGFX, hdc to paint on
+	Area Rect      // element area, to get invalid area to paint use GetClipBox,
+	// for DRAW_BACKGROUND/DRAW_FOREGROUND - it is a border box
+	// for DRAW_CONTENT - it is a content box
 	reserved uint32
 }
 
@@ -575,17 +617,18 @@ type TimerParams struct {
 }
 
 // typedef struct BEHAVIOR_EVENT_PARAMS
-// {
-//   UINT     cmd;        // BEHAVIOR_EVENTS
-//   HELEMENT heTarget;   // target element handler, in MENU_ITEM_CLICK this is owner element that caused this menu - e.g. context menu owner
-//                        // In scripting this field named as Event.owner
-//   HELEMENT he;         // source element e.g. in SELECTION_CHANGED it is new selected <option>, in MENU_ITEM_CLICK it is menu item (LI) element
-//   UINT_PTR reason;     // EVENT_REASON or EDIT_CHANGED_REASON - UI action causing change.
-//                        // In case of custom event notifications this may be any
-//                        // application specific value.
-//   SCITER_VALUE
-//            data;       // auxiliary data accompanied with the event. E.g. FORM_SUBMIT event is using this field to pass collection of values.
-// } BEHAVIOR_EVENT_PARAMS;
+//
+//	{
+//	  UINT     cmd;        // BEHAVIOR_EVENTS
+//	  HELEMENT heTarget;   // target element handler, in MENU_ITEM_CLICK this is owner element that caused this menu - e.g. context menu owner
+//	                       // In scripting this field named as Event.owner
+//	  HELEMENT he;         // source element e.g. in SELECTION_CHANGED it is new selected <option>, in MENU_ITEM_CLICK it is menu item (LI) element
+//	  UINT_PTR reason;     // EVENT_REASON or EDIT_CHANGED_REASON - UI action causing change.
+//	                       // In case of custom event notifications this may be any
+//	                       // application specific value.
+//	  SCITER_VALUE
+//	           data;       // auxiliary data accompanied with the event. E.g. FORM_SUBMIT event is using this field to pass collection of values.
+//	} BEHAVIOR_EVENT_PARAMS;
 type BehaviorEventParams C.BEHAVIOR_EVENT_PARAMS
 
 func (b *BehaviorEventParams) Cmd() BehaviorEvent {
@@ -655,11 +698,12 @@ type TiscriptValue uint64
 
 // // pinned tiscript_value, val here will survive GC.
 // typedef struct tiscript_pvalue
-// {
-//    tiscript_value val;
-//    struct tiscript_VM* vm;
-//    void *d1,*d2;
-// } tiscript_pvalue;
+//
+//	{
+//	   tiscript_value val;
+//	   struct tiscript_VM* vm;
+//	   void *d1,*d2;
+//	} tiscript_pvalue;
 type TiscriptPvalue struct {
 	Val    TiscriptValue
 	VM     HVM
@@ -667,12 +711,13 @@ type TiscriptPvalue struct {
 }
 
 // typedef struct TISCRIPT_METHOD_PARAMS
-// {
-//     tiscript_VM*   vm;
-//     tiscript_value tag;    //< method id (symbol)
-//     tiscript_value result; //< return value
-//     // parameters are accessible through tiscript::args.
-// } TISCRIPT_METHOD_PARAMS;
+//
+//	{
+//	    tiscript_VM*   vm;
+//	    tiscript_value tag;    //< method id (symbol)
+//	    tiscript_value result; //< return value
+//	    // parameters are accessible through tiscript::args.
+//	} TISCRIPT_METHOD_PARAMS;
 type TiscriptMethodParams struct {
 	// tiscript_VM    *vm
 	VM HVM
@@ -683,16 +728,17 @@ type TiscriptMethodParams struct {
 }
 
 // typedef struct DATA_ARRIVED_PARAMS
-// {
-//     HELEMENT  initiator;    // element intiator of HTMLayoutRequestElementData request,
-//     LPCBYTE   data;         // data buffer
-//     UINT      dataSize;     // size of data
-//     UINT      dataType;     // data type passed "as is" from HTMLayoutRequestElementData
-//     UINT      status;       // status = 0 (dataSize == 0) - unknown error.
-//                             // status = 100..505 - http response status, Note: 200 - OK!
-//                             // status > 12000 - wininet error code, see ERROR_INTERNET_*** in wininet.h
-//     LPCWSTR   uri;          // requested url
-// } DATA_ARRIVED_PARAMS;
+//
+//	{
+//	    HELEMENT  initiator;    // element intiator of HTMLayoutRequestElementData request,
+//	    LPCBYTE   data;         // data buffer
+//	    UINT      dataSize;     // size of data
+//	    UINT      dataType;     // data type passed "as is" from HTMLayoutRequestElementData
+//	    UINT      status;       // status = 0 (dataSize == 0) - unknown error.
+//	                            // status = 100..505 - http response status, Note: 200 - OK!
+//	                            // status > 12000 - wininet error code, see ERROR_INTERNET_*** in wininet.h
+//	    LPCWSTR   uri;          // requested url
+//	} DATA_ARRIVED_PARAMS;
 type DataArrivedParams C.DATA_ARRIVED_PARAMS
 
 // type DataArrivedParams struct {
@@ -713,29 +759,32 @@ func (d *DataArrivedParams) Data() []byte {
 }
 
 // struct SCROLL_PARAMS
-// {
-//   UINT      cmd;          // SCROLL_EVENTS
-//   HELEMENT  target;       // target element
-//   INT       pos;          // scroll position if SCROLL_POS
-//   BOOL      vertical;     // true if from vertical scrollbar
-// };
+//
+//	{
+//	  UINT      cmd;          // SCROLL_EVENTS
+//	  HELEMENT  target;       // target element
+//	  INT       pos;          // scroll position if SCROLL_POS
+//	  BOOL      vertical;     // true if from vertical scrollbar
+//	};
 type ScrollParams struct {
 	Cmd      ScrollEvent
 	Target   C.HELEMENT
 	Pos      int32
 	Vertical int32 // bool
+	Source   uint32
+	Reason   uint32
 }
 
-// enum EXCHANGE_CMD {
-// 	X_DRAG_ENTER = 0,       // drag enters the element
-// 	X_DRAG_LEAVE = 1,       // drag leaves the element
-// 	X_DRAG = 2,             // drag over the element
-// 	X_DROP = 3,             // data dropped on the element
-// 	X_PASTE = 4,            // N/A
-// 	X_DRAG_REQUEST = 5,     // N/A
-// 	X_DRAG_CANCEL = 6,      // drag cancelled (e.g. by pressing VK_ESCAPE)
-// 	X_WILL_ACCEPT_DROP = 7, // drop target element shall consume this event in order to receive X_DROP
-// };
+//	enum EXCHANGE_CMD {
+//		X_DRAG_ENTER = 0,       // drag enters the element
+//		X_DRAG_LEAVE = 1,       // drag leaves the element
+//		X_DRAG = 2,             // drag over the element
+//		X_DROP = 3,             // data dropped on the element
+//		X_PASTE = 4,            // N/A
+//		X_DRAG_REQUEST = 5,     // N/A
+//		X_DRAG_CANCEL = 6,      // drag cancelled (e.g. by pressing VK_ESCAPE)
+//		X_WILL_ACCEPT_DROP = 7, // drop target element shall consume this event in order to receive X_DROP
+//	};
 type ExchangeCmd uint32
 
 const (
@@ -749,13 +798,13 @@ const (
 	X_WILL_ACCEPT_DROP
 )
 
-// enum DD_MODES {
-// 	DD_MODE_NONE = 0, // DROPEFFECT_NONE	( 0 )
-// 	DD_MODE_COPY = 1, // DROPEFFECT_COPY	( 1 )
-// 	DD_MODE_MOVE = 2, // DROPEFFECT_MOVE	( 2 )
-// 	DD_MODE_COPY_OR_MOVE = 3, // DROPEFFECT_COPY	( 1 ) | DROPEFFECT_MOVE	( 2 )
-// 	DD_MODE_LINK = 4, // DROPEFFECT_LINK	( 4 )
-// };
+//	enum DD_MODES {
+//		DD_MODE_NONE = 0, // DROPEFFECT_NONE	( 0 )
+//		DD_MODE_COPY = 1, // DROPEFFECT_COPY	( 1 )
+//		DD_MODE_MOVE = 2, // DROPEFFECT_MOVE	( 2 )
+//		DD_MODE_COPY_OR_MOVE = 3, // DROPEFFECT_COPY	( 1 ) | DROPEFFECT_MOVE	( 2 )
+//		DD_MODE_LINK = 4, // DROPEFFECT_LINK	( 4 )
+//	};
 type DDMode uint32
 
 const (
@@ -767,15 +816,16 @@ const (
 )
 
 // struct EXCHANGE_PARAMS
-// {
-//   UINT         cmd;          // EXCHANGE_EVENTS
-//   HELEMENT     target;       // target element
-//   HELEMENT     source;       // source element (can be null if D&D from external window)
-//   POINT        pos;          // position of cursor, element relative
-//   POINT        pos_view;     // position of cursor, view relative
-//   UINT         mode;         // DD_MODE
-//   SCITER_VALUE data;         // packaged drag data
-// };
+//
+//	{
+//	  UINT         cmd;          // EXCHANGE_EVENTS
+//	  HELEMENT     target;       // target element
+//	  HELEMENT     source;       // source element (can be null if D&D from external window)
+//	  POINT        pos;          // position of cursor, element relative
+//	  POINT        pos_view;     // position of cursor, view relative
+//	  UINT         mode;         // DD_MODE
+//	  SCITER_VALUE data;         // packaged drag data
+//	};
 type ExchangeParams struct {
 	Cmd     ExchangeCmd
 	Target  C.HELEMENT
@@ -793,12 +843,15 @@ type ExchangeParams struct {
 // POINT     pos;          // position of cursor, element relative
 // POINT     pos_view;     // position of cursor, view relative
 // UINT      flags;        // for GESTURE_REQUEST combination of GESTURE_FLAGs.
-//                         // for others it is a combination of GESTURE_STATe's
+//
+//	// for others it is a combination of GESTURE_STATe's
+//
 // UINT      delta_time;   // period of time from previous event.
 // SIZE      delta_xy;     // for GESTURE_PAN it is a direction vector
 // double    delta_v;      // for GESTURE_ROTATE - delta angle (radians)
-//                         // for GESTURE_ZOOM - zoom value, is less or greater than 1.0
-// };
+//
+//	                        // for GESTURE_ZOOM - zoom value, is less or greater than 1.0
+//	};
 type GestureParams struct {
 	Cmd       GestureCmd
 	Target    C.HELEMENT
@@ -820,9 +873,12 @@ const (
 type SomParams C.SOM_PARAMS
 
 const (
-	LOAD_OK      = 0 // do default loading if data not set
-	LOAD_DISCARD = 1 // discard request completely
-	LOAD_DELAYED = 2 // data will be delivered later by the host application.
+	LOAD_OK      = 0 /**< do default loading if data not set */
+	LOAD_DISCARD = 1 /**< discard request completely */
+	LOAD_DELAYED = 2 /**< data will be delivered later by the host application.
+	  Host application must call SciterDataReadyAsync(,,, requestId) on each LOAD_DELAYED request to avoid memory leaks. */
+	LOAD_MYSELF = 3 /**< you return LOAD_MYSELF result to indicate that your (the host) application took or will take care about HREQUEST in your code completely.
+	  Use sciter-x-request.h[pp] API functions with SCN_LOAD_DATA::requestId handle . */
 )
 
 const (
@@ -909,6 +965,13 @@ const (
 	 *
 	 **/
 	SC_INVALIDATE_RECT = 0x09
+
+	/**This notification is sent when the engine needs some area to be redrawn
+
+	 * \param lParam #LPSCN_SET_CURSOR
+	 *
+	 **/
+	SC_SET_CURSOR = 0x0A
 )
 
 // Notify structures
@@ -1057,18 +1120,19 @@ func (s *ScnDataLoaded) Data() []byte {
 	return BytePtrToBytes(s.data, uint(s.DataSize))
 }
 
-//typedef struct SCN_ATTACH_BEHAVIOR
-//{
-//    UINT code; /**< [in] one of the codes above.*/
-//    HWINDOW hwnd; /**< [in] HWINDOW of the window this callback was attached to.*/
+// typedef struct SCN_ATTACH_BEHAVIOR
 //
-//    HELEMENT element;          /**< [in] target DOM element handle*/
-//    LPCSTR   behaviorName;     /**< [in] zero terminated string, string appears as value of CSS behavior:"???" attribute.*/
+//	{
+//	   UINT code; /**< [in] one of the codes above.*/
+//	   HWINDOW hwnd; /**< [in] HWINDOW of the window this callback was attached to.*/
 //
-//    ElementEventProc* elementProc;    /**< [out] pointer to ElementEventProc function.*/
-//    LPVOID            elementTag;     /**< [out] tag value, passed as is into pointer ElementEventProc function.*/
+//	   HELEMENT element;          /**< [in] target DOM element handle*/
+//	   LPCSTR   behaviorName;     /**< [in] zero terminated string, string appears as value of CSS behavior:"???" attribute.*/
 //
-//} SCN_ATTACH_BEHAVIOR;
+//	   ElementEventProc* elementProc;    /**< [out] pointer to ElementEventProc function.*/
+//	   LPVOID            elementTag;     /**< [out] tag value, passed as is into pointer ElementEventProc function.*/
+//
+// } SCN_ATTACH_BEHAVIOR;
 type ScnAttachBehavior C.SCN_ATTACH_BEHAVIOR
 
 // type ScnAttachBehavior struct {
@@ -1310,6 +1374,7 @@ const (
 	GFX_LAYER_D2D         = 3
 	GFX_LAYER_SKIA        = 4
 	GFX_LAYER_SKIA_OPENGL = 5
+	GFX_LAYER_SKIA_VULKAN = 6
 	GFX_LAYER_AUTO        = 0xFFFF
 )
 
@@ -1343,6 +1408,13 @@ const (
 	SCITER_SET_MAIN_WINDOW = 14 //  hWnd, value - TRUE/FALSE - window is main, will destroy all other dependent windows on close
 
 	SCITER_SET_MAX_HTTP_DATA_LENGTH = 15 // hWnd - N/A , value - max request length in megabytes (1024*1024 bytes)
+
+	SCITER_SET_PX_AS_DIP = 16 // value 1 - 1px in CSS is treated as 1dip, value 0 - default behavior - 1px is a physical pixel
+
+	SCITER_ENABLE_UIAUTOMATION = 17 // hWnd - N/A , TRUE/FALSE, enables UIAutomation support.
+
+	SCITER_USE_INTERNAL_HTTP_CLIENT = 18 // hWnd - N/A , TRUE - use internal HTTP client
+	//              FALSE - use system HTTP client (on platforms that has it: Win,Mac,Lin)
 )
 
 // * \param[in] placement \b UINT, values:

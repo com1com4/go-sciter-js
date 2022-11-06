@@ -7,7 +7,7 @@ extern REQUEST_RESULT SCAPI RequestUse( HREQUEST rq );
 extern REQUEST_RESULT SCAPI RequestUnUse( HREQUEST rq );
 extern REQUEST_RESULT SCAPI RequestUrl( HREQUEST rq, LPCSTR_RECEIVER* rcv, LPVOID rcv_param );
 extern REQUEST_RESULT SCAPI RequestContentUrl( HREQUEST rq, LPCSTR_RECEIVER* rcv, LPVOID rcv_param );
-extern REQUEST_RESULT SCAPI RequestGetRequestType( HREQUEST rq, REQUEST_RQ_TYPE* pType );
+extern REQUEST_RESULT SCAPI RequestGetRequestType( HREQUEST rq, LPCSTR* pType );
 extern REQUEST_RESULT SCAPI RequestGetRequestedDataType( HREQUEST rq, SciterResourceType* pData );
 extern REQUEST_RESULT SCAPI RequestGetReceivedDataType( HREQUEST rq, LPCSTR_RECEIVER* rcv, LPVOID rcv_param );
 extern REQUEST_RESULT SCAPI RequestGetNumberOfParameters( HREQUEST rq, UINT* pNumber );
@@ -165,12 +165,14 @@ func (r *Request) ContentUrl() (string, error) {
 	return url, wrapRequestResult(ret, "RequestContentUrl")
 }
 
-func (r *Request) RequestType() (uint, error) {
-	var requestType uint
+func (r *Request) RequestType() (string, error) {
+	var requestType string
+	var rtBuf = make([]byte, 10)
 	// args
-	crequestType := (*C.REQUEST_RQ_TYPE)(unsafe.Pointer(&requestType))
+	crequestType := (*C.LPCSTR)(unsafe.Pointer(&rtBuf[0]))
 	// cgo call
 	ret := C.RequestGetRequestType(r.handle, crequestType)
+	requestType = string(rtBuf)
 	return requestType, wrapRequestResult(ret, "RequestGetRequestType")
 }
 

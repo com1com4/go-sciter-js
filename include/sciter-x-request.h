@@ -10,7 +10,7 @@
 
  /*
  * Sciter's get resource request object - represents requests made by Element/View.request() functions.
- *
+ * 
  */
 
 
@@ -19,7 +19,7 @@
 
 #include "sciter-x-types.h"
 
-#if defined(__cplusplus)
+#if defined(__cplusplus) 
   namespace html
   {
     struct request;
@@ -37,16 +37,6 @@ typedef enum REQUEST_RESULT
   REQUEST_FAILURE = 2,    // operation failed, e.g. index out of bounds
   REQUEST_NOTSUPPORTED = 3 // the platform does not support requested feature
 } REQUEST_RESULT;
-
-typedef enum REQUEST_RQ_TYPE
-  {
-    RRT_GET = 1,
-    RRT_POST = 2,
-    RRT_PUT = 3,
-    RRT_DELETE = 4,
-
-    RRT_FORCE_DWORD = 0xffffffff
-  } REQUEST_RQ_TYPE;
 
 typedef enum SciterResourceType
 {
@@ -88,9 +78,9 @@ struct SciterRequestAPI
   REQUEST_RESULT
         SCFN(RequestContentUrl)( HREQUEST rq, LPCSTR_RECEIVER* rcv, LPVOID rcv_param );
 
-  // get requested data type
+  // get requested data type as string "GET", "POST", etc.
   REQUEST_RESULT
-        SCFN(RequestGetRequestType)( HREQUEST rq, REQUEST_RQ_TYPE* pType );
+        SCFN(RequestGetRequestType)( HREQUEST rq, LPCSTR* pType );
 
   // get requested data type
   REQUEST_RESULT
@@ -121,11 +111,11 @@ struct SciterRequestAPI
   REQUEST_RESULT
         SCFN(RequestGetNumberOfRqHeaders)( HREQUEST rq, UINT* pNumber );
 
-  // get nth request header name
+  // get nth request header name 
   REQUEST_RESULT
         SCFN(RequestGetNthRqHeaderName)( HREQUEST rq, UINT n, LPCWSTR_RECEIVER* rcv, LPVOID rcv_param );
 
-  // get nth request header value
+  // get nth request header value 
   REQUEST_RESULT
         SCFN(RequestGetNthRqHeaderValue)( HREQUEST rq, UINT n, LPCWSTR_RECEIVER* rcv, LPVOID rcv_param );
 
@@ -133,11 +123,11 @@ struct SciterRequestAPI
   REQUEST_RESULT
         SCFN(RequestGetNumberOfRspHeaders)( HREQUEST rq, UINT* pNumber );
 
-  // get nth response header name
+  // get nth response header name 
   REQUEST_RESULT
         SCFN(RequestGetNthRspHeaderName)( HREQUEST rq, UINT n, LPCWSTR_RECEIVER* rcv, LPVOID rcv_param );
 
-  // get nth response header value
+  // get nth response header value 
   REQUEST_RESULT
         SCFN(RequestGetNthRspHeaderValue)( HREQUEST rq, UINT n, LPCWSTR_RECEIVER* rcv, LPVOID rcv_param );
 
@@ -153,15 +143,15 @@ struct SciterRequestAPI
   REQUEST_RESULT
         SCFN(RequestGetProxyPort)( HREQUEST rq, UINT* pPort );
 
-  // mark reequest as complete with status and data
+  // mark reequest as complete with status and data 
   REQUEST_RESULT
         SCFN(RequestSetSucceeded)( HREQUEST rq, UINT status, LPCBYTE dataOrNull, UINT dataLength);
-
-  // mark reequest as complete with failure and optional data
+  
+  // mark reequest as complete with failure and optional data 
   REQUEST_RESULT
         SCFN(RequestSetFailed)( HREQUEST rq, UINT status, LPCBYTE dataOrNull, UINT dataLength );
 
-  // append received data chunk
+  // append received data chunk 
   REQUEST_RESULT
         SCFN(RequestAppendDataChunk)( HREQUEST rq, LPCBYTE data, UINT dataLength );
 
@@ -184,6 +174,19 @@ struct SciterRequestAPI
   // get received (so far) data
   REQUEST_RESULT
         SCFN(RequestGetData)( HREQUEST rq, LPCBYTE_RECEIVER* rcv, LPVOID rcv_param );
+
+#if 0
+  // issues http request, creates instance of 
+  REQUEST_RESULT
+        SCFN(Request)(
+          HWINDOW        hSciterInstance,
+          LPCSTR         url,             // url
+          UINT           requestType,     // one of REQUEST_RQ_TYPE values
+          REQUEST_PARAM *requestParams,   // parameters
+          UINT           nParams,         // number of parameters
+          HREQUEST*      request /*OUT*/  // request issued, NOTE: handler is RequestUse'd, must be RequestUnUse'd
+        );
+#endif
 
 };
 
